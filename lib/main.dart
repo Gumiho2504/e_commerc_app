@@ -1,10 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:e_commerc_app/screens/home_screen.dart';
+import 'package:e_commerc_app/screens/user/home_screen.dart';
+import 'package:e_commerc_app/screens/admin/home_screen.dart' as Admin;
 import 'package:e_commerc_app/screens/login_screen.dart';
 import 'package:e_commerc_app/screens/signup_screen.dart';
 
@@ -36,7 +38,8 @@ class MyApp extends StatelessWidget {
           routes: {
             'login': (context) => LoginScreen(),
             'signup': (context) => SignUpScreen(),
-            'home': (context) => HomeScreen(),
+            'user_home': (context) => HomeScreen(),
+            'admin_home': (context) => Admin.HomeScreen(),
           },
           theme: ThemeData(
             primaryColor: Colors.deepPurple,
@@ -46,9 +49,64 @@ class MyApp extends StatelessWidget {
             fontFamily: GoogleFonts.poppins().fontFamily,
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           ),
-          home: isLogin ? HomeScreen() : LoginScreen(),
+          home: AuthHandler(),
         );
       },
     );
+  }
+}
+
+class AuthHandler extends StatefulWidget {
+  const AuthHandler({super.key});
+
+  @override
+  State<AuthHandler> createState() => _AuthHandlerState();
+}
+
+class _AuthHandlerState extends State<AuthHandler> {
+  User? _currentUser;
+  String? _role;
+  @override
+  void initState() {
+    _initializeAuthState();
+    super.initState();
+  }
+
+  void _initializeAuthState() {
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+
+      if (!mounted) return;
+      setState(() {
+        _currentUser = user;
+      });
+      if (user != null) {
+        final userDoc =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .get();
+        if (!mounted) return;
+        if (userDoc.exists) {
+          setState(() {
+            _role = userDoc['role'];
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_currentUser == null) {
+      ///print(_currentUser);
+
+      return LoginScreen();
+    }
+    if (_role == null) {
+
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    //print(_role);
+    return _role == 'admin' ? Admin.HomeScreen() : HomeScreen();
   }
 }

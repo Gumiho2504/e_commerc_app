@@ -16,7 +16,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final _selectValue = 0;
+  int?  _selectValue = 0;
   final _roles = [Role.user, Role.admin];
 
   AuthService authService = AuthService();
@@ -26,7 +26,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _userName.text,
       _emailController.text,
       _passwordController.text,
-      _roles[_selectValue],
+      _roles[_selectValue!],
     );
 
     if (result == 'success') {
@@ -86,7 +86,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 Text(
-                  'Create an account ',
+                  'Create an account ${_roles[_selectValue!]}',
                   style: TextStyle(
                     fontSize: 12.h,
                     fontWeight: FontWeight.w500,
@@ -122,6 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
 
                       DropdownButtonFormField(
+
                         alignment: AlignmentDirectional.bottomStart,
                         style: TextStyle(
                           color: ThemeData().primaryColor,
@@ -165,7 +166,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         },
                         value: _selectValue,
                         onChanged: (value) {
-                          setState(() {});
+                          setState(() {
+                            _selectValue = value;
+                          });
                         },
                       ),
                       // Login Button

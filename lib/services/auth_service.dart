@@ -39,12 +39,12 @@ class AuthService {
         email: email,
         password: password,
       );
-      // DocumentSnapshot userDoc =
+      DocumentSnapshot userDoc =
       await firestore
           .collection('users')
           .doc(firebaseAuth.currentUser!.uid)
           .get();
-      return 'success';
+      return userDoc['role'];
     } on FirebaseAuthException catch (e) {
       return getErrorMessaga(e.code);
     } catch (e) {

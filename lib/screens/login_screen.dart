@@ -20,12 +20,18 @@ class _LoginScreenState extends State<LoginScreen> {
       _emailController.text,
       _passwordController.text,
     );
-    if (result == 'success') {
+    if (result == 'admin') {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Login successful $result')));
-      Navigator.pushNamed(context, 'home');
-    } else {
+      Navigator.pushNamed(context, 'admin_home');
+    }  else if(result == 'user'){
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login successful $result')));
+      Navigator.pushNamed(context, 'user_home');
+    }
+    else {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(' $result')));
