@@ -1,7 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class InputComponent extends StatelessWidget {
+class InputComponent extends StatefulWidget {
   const InputComponent({
     super.key,
     required GlobalKey<FormState> formKey,
@@ -9,6 +10,7 @@ class InputComponent extends StatelessWidget {
     required TextInputType textType,
     this.label,
     this.errorMessage,
+    this.onSubmitted,
   }) : _formKey = formKey,
        _controller = controller,
        _type = textType;
@@ -18,27 +20,39 @@ class InputComponent extends StatelessWidget {
   final TextInputType _type;
   final String? label;
   final String? errorMessage;
+  final void Function(String)? onSubmitted;
 
   @override
+  State<InputComponent> createState() => _InputComponentState();
+}
+
+class _InputComponentState extends State<InputComponent> {
+  bool isView = false;
+  @override
   Widget build(BuildContext context) {
-    bool isObscure = _type == TextInputType.visiblePassword;
+    bool isObscure = widget._type == TextInputType.visiblePassword;
+
     return TextFormField(
       style: TextStyle(
         color: ThemeData().primaryColor,
         fontWeight: FontWeight.w700,
       ),
-      obscureText: isObscure,
+      obscureText: isObscure && isView,
       obscuringCharacter: "*",
       focusNode: FocusNode(),
-      keyboardType: _type,
+      keyboardType: widget._type,
 
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return errorMessage; // e.g. "Password is required"
-        }
+        if (widget.label!.toLowerCase() == "discount") {
+          return null;
+        } else {
+          if (value == null || value.isEmpty) {
+            return widget.errorMessage; // e.g. "Password is required"
+          }
 
-        if (isObscure && value.length < 8) {
-          return "Password must be at least 8 characters"; // 👈 match number in message
+          if (isObscure && value.length < 8) {
+            return "Password must be at least 8 characters"; // 👈 match number in message
+          }
         }
 
         return null;
@@ -54,10 +68,27 @@ class InputComponent extends StatelessWidget {
         //FocusScope.of(context).unfocus();
         FocusManager.instance.primaryFocus?.unfocus();
       },
-      controller: _controller,
+
+      controller: widget._controller,
+      onFieldSubmitted: (value) => widget.onSubmitted!(value),
       decoration: InputDecoration(
+        suffix: GestureDetector(
+          onTap: () {
+            setState(() {
+              isView = !isView;
+            });
+          },
+          child: Padding(
+            padding: EdgeInsets.only(right: 10.w),
+            child: Icon(
+              isView ? Icons.visibility : Icons.visibility_off,
+              color: ThemeData().primaryColor.withAlpha(200),
+              size: isObscure ? 20.h : 0,
+            ),
+          ),
+        ),
         labelStyle: TextStyle(color: ThemeData().primaryColor.withAlpha(200)),
-        label: Text(label ?? ""),
+        label: Text(widget.label ?? ""),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.r),
           borderSide: BorderSide(

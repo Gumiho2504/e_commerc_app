@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
@@ -12,9 +11,23 @@ class HomeScreen extends StatelessWidget {
       await authService.signOut();
       Navigator.pushNamed(context, 'login');
     }
+
     return Scaffold(
-      body: Center(
-        child: Text("Admin"),
+      body: Center(child: Text("Admin")),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, 'add_item');
+        },
+        child: Icon(Icons.add),
+      ),
+      bottomNavigationBar: GestureDetector(
+        onTap: () {},
+        child: Container(
+          height: 50,
+          alignment: Alignment.center,
+          color: Colors.red,
+          child: Text("Logout"),
+        ),
       ),
     );
   }

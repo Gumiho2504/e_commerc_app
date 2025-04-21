@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:e_commerc_app/admin/screens/add_item_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -17,7 +19,8 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await ScreenUtil.ensureScreenSize();
   final user = FirebaseAuth.instance.currentUser;
-  runApp(MyApp(isLogin: user != null));
+
+  runApp(ProviderScope(child: MyApp(isLogin: user != null)));
 }
 
 class MyApp extends StatelessWidget {
@@ -40,8 +43,13 @@ class MyApp extends StatelessWidget {
             'signup': (context) => SignUpScreen(),
             'user_home': (context) => HomeScreen(),
             'admin_home': (context) => Admin.HomeScreen(),
+            'add_item': (context) => AddItemScreen(),
           },
           theme: ThemeData(
+            buttonTheme: ButtonThemeData(
+              buttonColor: Colors.deepPurple,
+              textTheme: ButtonTextTheme.primary,
+            ),
             primaryColor: Colors.deepPurple,
             secondaryHeaderColor: Colors.deepPurpleAccent.withAlpha(200),
             textTheme: TextTheme(),
@@ -74,7 +82,6 @@ class _AuthHandlerState extends State<AuthHandler> {
 
   void _initializeAuthState() {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
-
       if (!mounted) return;
       setState(() {
         _currentUser = user;
@@ -103,7 +110,6 @@ class _AuthHandlerState extends State<AuthHandler> {
       return LoginScreen();
     }
     if (_role == null) {
-
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     //print(_role);
