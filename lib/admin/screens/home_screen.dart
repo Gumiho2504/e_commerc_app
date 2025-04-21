@@ -1,4 +1,4 @@
-import 'package:e_commerc_app/services/auth_service.dart';
+import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {

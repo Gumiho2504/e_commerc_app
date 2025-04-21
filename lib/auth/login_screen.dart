@@ -1,4 +1,4 @@
-import 'package:e_commerc_app/services/auth_service.dart';
+import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:e_commerc_app/components/text_input.dart';
