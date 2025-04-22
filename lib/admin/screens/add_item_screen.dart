@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:e_commerc_app/admin/controllers/add_item_controller.dart';
 import 'package:e_commerc_app/admin/model/item.dart';
 import 'package:e_commerc_app/components/text_input.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -207,15 +208,26 @@ class _AddItemPageState extends ConsumerState<AddItemScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            notifier.AddItem(
-                              _nameController.text,
-                              _priceController.text,
-                            );
+                            try {
+                              notifier.AddItem(
+                                _nameController.text,
+                                _priceController.text,
+                              );
+
+                              if (!state.isLoading) Navigator.pop(context);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
                           }
                         },
-                        child: Text("Add Item"),
+                        child:
+                            state.isLoading
+                                ? CircularProgressIndicator()
+                                : Text("Add Item"),
                       ),
                     ),
                   ],

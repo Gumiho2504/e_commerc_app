@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:nativewrappers/_internal/vm/lib/internal_patch.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/admin/model/item.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -84,47 +82,65 @@ class AddItemNotifier extends StateNotifier<Item> {
     }
   }
 
-  void AddItem(String name, String price) {
-    print(state.seletedCategory);
+  void AddItem(String name, String price) async {
+    // Input validation
     if (name.isEmpty ||
         price.isEmpty ||
         state.sizes.isEmpty ||
         state.colors.isEmpty ||
         state.seletedCategory == null ||
         (state.isDiscount! && state.discountPercentage == null)) {
-      throw Exception("size and color is required");
+      throw Exception("Size and color are required");
     }
-    state.copyWith(isLoading: true);
+
+    // Validate image file
+    if (state.image == null || !File(state.image!).existsSync()) {
+      throw Exception("Image file is missing or invalid");
+    }
+
+    state = state.copyWith(isLoading: true);
+
     try {
-      // uplaod file to firebase
       final fileName = DateTime.now().millisecondsSinceEpoch.toString();
       final ref = FirebaseStorage.instance.ref().child('items/$fileName');
+
+      // Upload file
       final uploadTask = ref.putFile(File(state.image!));
-      uploadTask.whenComplete(() async {
-        final imageUrl = await ref.getDownloadURL();
-        // save item to firestore
-        String uuid = FirebaseAuth.instance.currentUser!.uid;
-        items
-            .add({
-              'name': name,
-              'price': double.parse(price),
-              'image': imageUrl,
-              'size': state.sizes,
-              'colors': state.colors,
-              'category': state.seletedCategory,
-              'isDiscount': state.isDiscount,
-              'discountPercentage': state.discountPercentage,
-              'userId': uuid,
-            })
-            .then((value) {
-              state = state.copyWith(isLoading: false);
-            });
-        // reset state after success uploado data
-        //state = ;
+      final snapshot = await uploadTask;
+      if (snapshot.state != TaskState.success) {
+        throw Exception("File upload failed");
+      }
+
+      // Get download URL
+      final imageUrl = await ref.getDownloadURL();
+
+      // Verify admin privileges
+      final user = FirebaseAuth.instance.currentUser;
+      // final idTokenResult = await user?.getIdTokenResult();
+      // if (idTokenResult?.claims != true) {
+      //   throw Exception("Only admins can add items");
+      // }
+
+      // Add to Firestore
+      await FirebaseFirestore.instance.collection('items').add({
+        'name': name,
+        'price': double.parse(price),
+        'image': imageUrl,
+        'size': state.sizes,
+        'colors': state.colors,
+        'category': state.seletedCategory,
+        'isDiscount': state.isDiscount,
+        'discountPercentage': state.discountPercentage,
+        'userId': user!.uid,
       });
+    } on FirebaseException catch (e) {
+      if (e.code.contains('storage')) {
+        throw Exception('Storage error: ${e.message}');
+      } else {
+        throw Exception('Firestore error: ${e.message}');
+      }
     } catch (e) {
-      print(e);
-      throw Exception(e);
+      throw Exception('Error adding item: $e');
     } finally {
       state = state.copyWith(isLoading: false);
     }
