@@ -22,12 +22,12 @@ class _AddItemPageState extends ConsumerState<AddItemScreen> {
   final _colorController = TextEditingController();
   final _discountController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(addItemProvider);
     final notifier = ref.read(addItemProvider.notifier);
-    final String testImageLink =
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSk0OEShe7JrQgoKokDX2fK8u9DzOBdIfmhBQ&s";
+
     return Scaffold(
       appBar: AppBar(title: Text("Add Item")),
       body: Padding(

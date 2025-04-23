@@ -6,6 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+int currentPage = 0;
+final currentPangeProvider = Provider((ref) => currentPage);
 final addItemProvider = StateNotifierProvider<AddItemNotifier, Item>(
   (ref) => AddItemNotifier(),
 );

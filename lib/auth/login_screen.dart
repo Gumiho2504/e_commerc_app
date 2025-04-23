@@ -25,13 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Login successful $result')));
       Navigator.pushNamed(context, 'admin_home');
-    }  else if(result == 'user'){
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login successful $result')));
+    } else if (result == 'user') {
       Navigator.pushNamed(context, 'user_home');
-    }
-    else {
+    } else {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(' $result')));
