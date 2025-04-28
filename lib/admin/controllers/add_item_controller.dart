@@ -7,7 +7,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 int currentPage = 0;
-final currentPangeProvider = Provider((ref) => currentPage);
+final currentPangeProvider = Provider<int>((ref) => currentPage);
+
+class Animal {
+  String name;
+  String age;
+  Animal(this.name, this.age);
+}
+
+class Cat extends Animal {
+  Cat() : super('Cat', 'gjdf') {
+    print("Helow");
+  }
+}
+
 final addItemProvider = StateNotifierProvider<AddItemNotifier, Item>(
   (ref) => AddItemNotifier(),
 );
