@@ -9,16 +9,18 @@ class CustomDropDown extends HookWidget {
 
     required this.items,
     this.label,
+    this.currentSelect,
   });
   final String? label;
 
   final List<String> items;
-  final void Function(int?)? onChanged;
+  final void Function(String?)? onChanged;
+  final int? currentSelect;
 
   @override
   Widget build(BuildContext context) {
     final isShowItem = useState(false);
-    final selectedValue = useState<int?>(null);
+    final selectedValue = useState<int?>(currentSelect);
     return Column(
       children: [
         IntrinsicWidth(
@@ -78,10 +80,16 @@ class CustomDropDown extends HookWidget {
                   items.length,
                   (i) => InkWell(
                     onTap: () {
-                      onChanged!(selectedValue.value);
+                      //if (selectedValue.value != null)
                       selectedValue.value = i;
+                      if (i == 0) {
+                        onChanged!(null);
+                      } else {
+                        onChanged!(items[selectedValue.value!]);
+                      }
                       isShowItem.value = false;
                     },
+
                     child: Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: 10.w,

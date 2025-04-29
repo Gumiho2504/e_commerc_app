@@ -1,16 +1,16 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_commerc_app/components/customDropDown.dart';
-import 'package:e_commerc_app/components/product_cart.dart';
+
+import 'package:e_commerc_app/components/filter_group.dart';
+import 'package:e_commerc_app/components/grid_cart.dart';
 import 'package:e_commerc_app/components/search_field.dart';
+import 'package:e_commerc_app/user/screens/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SearchScreen extends HookWidget {
   final String? category;
-  const SearchScreen({this.category});
+  const SearchScreen({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +18,137 @@ class SearchScreen extends HookWidget {
         .collection('items');
     final List<Map<String, dynamic>> filters = [
       {
-        'category': ['Man', 'Woman', 'Kid'],
+        'category': ['All', 'Man', 'Woman', 'Kid'],
       },
       {
-        'size': ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+        'size': ['All', 'XS', 'S', 'M', 'L', 'XL', 'XXL'],
       },
       {
-        'color': ['Red', 'Yellow', 'Black', 'Green'],
+        'color': [
+          'All',
+          'Red',
+          'Green',
+          'Blue',
+          'Yellow',
+          'Black',
+          'White',
+          'Purple',
+          'Orange',
+          'Pink',
+          'Gray',
+          'Brown',
+          'Cyan',
+          'Magenta',
+          'Lime',
+          'Indigo',
+          'Violet',
+          'Gold',
+          'Silver',
+          'Beige',
+          'Maroon',
+          'Olive',
+          'Teal',
+          'Navy',
+          'Turquoise',
+          'Coral',
+        ],
       },
       {
-        'Price from': ['1', '10', '20', '30', '40', '50', '60'],
+        'from': ['All', '1', '10', '20', '30', '40', '50', '60'],
       },
       {
-        'To': ['1', '10', '20', '30', '40', '50', '60'],
+        'To': ['All', '1', '10', '20', '30', '40', '50', '60'],
       },
     ];
+    final searchQuery = useState("");
+    //final lastDocument = useState<DocumentSnapshot?>(null);
+    //final hasMore = useState<bool>(true);
+    final queryData = useState<Stream<QuerySnapshot>?>(null);
+    final currenentCategory = useState<String?>(category);
+    final currenctSelect = useState(0);
+    final selectedFilters = useState<Map<String, dynamic>>({
+      'category': null,
+      'size': null,
+      'color': null,
+      'from': null,
+      'to': null,
+    });
+
+    Query buildQuery() {
+      Query<Map<String, dynamic>> query = itemsCollection.withConverter(
+        fromFirestore:
+            (snapshoot, _) => snapshoot.data() as Map<String, dynamic>,
+        toFirestore: (value, _) => value,
+      );
+      if (currenentCategory.value != null) {
+        //query = query.where('category', isEqualTo: category);
+        final categoryList =
+            filters.firstWhere(
+                  (element) => element.containsKey('category'),
+                )['category']
+                as List;
+
+        currenctSelect.value = categoryList.indexOf(currenentCategory.value);
+        //print('${categoryList} = ${currenctSelect.value}');
+        selectedFilters.value['category'] = currenentCategory.value;
+      }
+
+      selectedFilters.value.forEach((key, value) {
+        if (value != null) {
+          if (key == 'from') {
+            query = query.where(
+              'price',
+              isGreaterThanOrEqualTo: int.parse(value),
+            );
+          } else if (key == 'to') {
+            query = query.where('price', isLessThan: int.parse(value));
+          } else if (key == 'category') {
+            query = query.where('category', isEqualTo: value);
+          } else if (key == 'color') {
+            query = query.where(
+              'colors',
+              arrayContains: value.toString().toLowerCase(),
+            );
+          } else if (key == 'size') {
+            query = query.where('size', isEqualTo: value);
+            //isHasContain.value = true;
+          } else {
+            query = query.where(key, isEqualTo: value);
+          }
+        }
+      });
+      if (searchQuery.value.isNotEmpty) {
+        query = query
+            .where('name', isGreaterThanOrEqualTo: searchQuery.value)
+            //.where('price', isGreaterThanOrEqualTo: 20)
+            .where('name', isLessThanOrEqualTo: '${searchQuery.value}\uf8ff');
+      }
+      return query;
+    }
+
+    useEffect(() {
+      queryData.value = buildQuery().snapshots();
+
+      return () {
+        //currenctSelect.value = 0;
+        selectedFilters.value['category'] = null;
+      };
+    }, [category, searchQuery.value, selectedFilters.value]);
+
+    // Load more items
+    // Future<void> loadMore() async {
+    //   if (!hasMore.value || lastDocument.value == null) return;
+
+    //   final query = buildQuery().startAfterDocument(lastDocument.value!);
+    //   final snapshot = await query.get();
+
+    //   if (snapshot.docs.isEmpty) {
+    //     hasMore.value = false;
+    //   } else {
+    //     lastDocument.value = snapshot.docs.last;
+    //   }
+    // }
+
     return SizedBox(
       height: MediaQuery.of(context).size.height,
       child: Column(
@@ -40,7 +156,11 @@ class SearchScreen extends HookWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           //Search Field
-          SearchField(onchange: (value) {}),
+          SearchField(
+            onchange: (value) {
+              searchQuery.value = value;
+            },
+          ),
 
           //filter Design
           Expanded(
@@ -48,19 +168,17 @@ class SearchScreen extends HookWidget {
               children: [
                 StreamBuilder<QuerySnapshot>(
                   stream:
-                      itemsCollection
-                          .where('category', isEqualTo: category)
-                          .snapshots(),
+                      // itemsCollection
+                      //     .where('category', isGreaterThanOrEqualTo: 'Man')
+                      //     .where('price', isGreaterThanOrEqualTo: 20)
+                      //     .snapshots(),
+                      queryData.value,
                   builder: (context, AsyncSnapshot<QuerySnapshot> snapshoot) {
-                    if (snapshoot.data == null)
-                      return CircularProgressIndicator();
-                    final data = snapshoot.data!.docs;
-                    return Expanded(
-                      //color: Colors.amber,
-                      child: Padding(
+                    if (snapshoot.connectionState == ConnectionState.waiting) {
+                      return Padding(
                         padding: EdgeInsets.only(top: 50.h),
                         child: GridView.builder(
-                          itemCount: data.length,
+                          itemCount: 6,
 
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
@@ -70,131 +188,47 @@ class SearchScreen extends HookWidget {
                               ),
                           itemBuilder:
                               (context, index) =>
-                              //color: Colors.amber,
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w),
-                                child: Column(
-                                  children: [
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          5.h,
-                                        ),
-                                        child: CachedNetworkImage(
-                                          progressIndicatorBuilder: (
-                                            context,
-                                            url,
-                                            progress,
-                                          ) {
-                                            return CircularProgressIndicator();
-                                          },
-                                          fit: BoxFit.cover,
-                                          imageUrl: data[index]['image'],
-                                          width: double.infinity,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(height: 5.h),
-                                    SizedBox(
-                                      height: 33.h,
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                data[index]['name'],
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 12.h,
-                                                ),
-                                              ),
-                                              RichText(
-                                                text: TextSpan(
-                                                  text:
-                                                      '${data[index]['price']}\$',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 11.h,
-                                                    color: Colors.grey.shade400,
-                                                    decoration:
-                                                        TextDecoration
-                                                            .lineThrough,
-                                                  ),
-                                                  children: [
-                                                    TextSpan(
-                                                      text:
-                                                          '${data[index]['discountPercentage']}%',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 10.h,
-                                                        color:
-                                                            Colors.red.shade400,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Row(
-                                                children: List.generate(5, (
-                                                  index,
-                                                ) {
-                                                  return Icon(
-                                                    Icons.star,
-                                                    color: Colors.yellow,
-                                                    size: 10.h,
-                                                  );
-                                                }),
-                                              ),
-                                              Text(
-                                                "0\$",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.red,
-                                                  fontSize: 10.h,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                  //color: Colors.amber,
+                                  SkeletonBox(),
                         ),
+                      );
+                    }
+                    if (!snapshoot.hasData || snapshoot.data!.docs.isEmpty) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: 50.h),
+                        child: Text(
+                          "No items found!",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      );
+                    }
+                    final data = snapshoot.data!.docs;
+                    return
+                    //color: Colors.amber,
+                    Padding(
+                      padding: EdgeInsets.only(top: 50.h),
+                      child: GridView.builder(
+                        itemCount: data.length,
+
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              mainAxisSpacing: 20,
+                              crossAxisSpacing: 20,
+                              crossAxisCount: 2,
+                            ),
+                        itemBuilder:
+                            (context, index) =>
+                            //color: Colors.amber,
+                            GridCart(data: data[index]),
                       ),
                     );
                   },
                 ),
-                IntrinsicHeight(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 5,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children:
-                          filters.map((filter) {
-                            final key = filter.keys.first;
-                            final values = filter.values.first;
-                            return CustomDropDown(
-                              (value) {},
-                              items: values,
-                              label: key,
-                            );
-                          }).toList(),
-                    ),
-                  ),
+                FilterGroup(
+                  filters: filters,
+                  currenctSelect: currenctSelect,
+                  selectedFilters: selectedFilters,
+                  currenentCategory: currenentCategory,
                 ),
               ],
             ),
