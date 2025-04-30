@@ -1,10 +1,9 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/components/product_cart.dart';
+import 'package:e_commerc_app/user/screens/skeleton_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,7 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:e_commerc_app/admin/controllers/add_item_controller.dart';
 import 'package:e_commerc_app/components/banner.dart';
-import 'package:e_commerc_app/user/screens/notification_screen.dart';
+import 'package:e_commerc_app/user/screens/favorite_screen.dart';
 import 'package:e_commerc_app/user/screens/profile_screen.dart';
 import 'package:e_commerc_app/user/screens/search_screen.dart';
 
@@ -25,7 +24,7 @@ class HomeScreen extends HookConsumerWidget {
     final List<Widget> screens = [
       MainScreen(),
       SearchScreen(category: searchByCategory),
-      NotificationScreen(),
+      FavoriteScreen(),
       ProfileScreen(),
     ];
 
@@ -130,11 +129,20 @@ class MainScreen extends HookConsumerWidget {
         ),
       ),
     );
-    late List<String> categoriesImage = [];
-
+    //late List<String> categoriesImage = [];
+    final controller = useScrollController();
     useEffect(() {
+      controller.addListener(() {
+        if (controller.hasClients) {
+          if (controller.offset >= controller.position.maxScrollExtent &&
+              !controller.position.outOfRange) {
+            //debugPrint("Reached the end!");
+          }
+        }
+      });
+
       return null;
-    }, const []);
+    }, [controller]);
 
     return SingleChildScrollView(
       child: Column(
@@ -145,7 +153,7 @@ class MainScreen extends HookConsumerWidget {
             children: [logo, cartButton],
           ),
           TopBanner(),
-          section("Shop by category"),
+          section("Shop by category", context),
           SizedBox(
             height: 100.h,
             child: StreamBuilder(
@@ -208,17 +216,33 @@ class MainScreen extends HookConsumerWidget {
               },
             ),
           ),
-          section("Curated for you"),
+          section("Curated for you", context),
           StreamBuilder(
-            stream: items.snapshots(),
+            stream: items.limit(5).snapshots(),
             builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.data == null) {
-                return CircularProgressIndicator();
+              if (snapshot.data == null ||
+                  snapshot.connectionState == ConnectionState.waiting) {
+                return SizedBox(
+                  height: 270.h,
+                  child: ListView.separated(
+                    itemCount: 2,
+                    scrollDirection: Axis.horizontal,
+                    separatorBuilder: (context, index) => SizedBox(width: 10.w),
+                    itemBuilder: (context, index) {
+                      return SizedBox(
+                        height: 270.h,
+                        width: 270.h,
+                        child: SkeletonBox(),
+                      );
+                    },
+                  ),
+                );
               }
               final items = snapshot.data!.docs;
               return SizedBox(
                 height: 270.h,
                 child: ListView.builder(
+                  controller: controller,
                   scrollDirection: Axis.horizontal,
                   itemCount: items.length,
                   itemBuilder: (context, index) {
@@ -236,7 +260,7 @@ class MainScreen extends HookConsumerWidget {
     );
   }
 
-  Row section(String title) {
+  Row section(String title, BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -244,7 +268,17 @@ class MainScreen extends HookConsumerWidget {
           title,
           style: TextStyle(fontSize: 18.h, fontWeight: FontWeight.bold),
         ),
-        Text("See all"),
+        InkWell(
+          onTap:
+              () => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(initScreen: 1),
+                ),
+                (route) => false,
+              ),
+          child: Text("See all"),
+        ),
       ],
     );
   }

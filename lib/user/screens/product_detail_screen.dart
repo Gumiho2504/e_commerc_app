@@ -1,12 +1,18 @@
-import 'package:e_commerc_app/admin/controllers/add_item_controller.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:e_commerc_app/user/screens/favorite_screen.dart';
+import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import 'package:e_commerc_app/admin/controllers/add_item_controller.dart';
 
 class ProductDetailScreen extends HookConsumerWidget {
-  const ProductDetailScreen({super.key});
-
+  const ProductDetailScreen({super.key, required this.data});
+  final QueryDocumentSnapshot<Object?> data;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = useState(0);
@@ -23,16 +29,40 @@ class ProductDetailScreen extends HookConsumerWidget {
       Container(color: Colors.green),
     ];
 
-    final colors = [Colors.amber, Colors.red, Colors.green, Colors.blue];
-    final sizes = ['XS', 'S', 'M', 'L', 'Xl', 'XXL'];
+    final colors = data['colors'] as List;
+    final sizes = data['size'];
     final productsImages = [
-      'assets/images/f1.jpg',
-      'assets/images/f2.jpg',
-      'assets/images/f3.jpg',
+      '${data['image']}',
+      '${data['image']}',
+      '${data['image']}',
     ];
+    final discountPercent = 100.0 - double.parse(data['discountPercentage']);
+    final price = data['price'];
+    final discountPrice = price * discountPercent / 100;
+    Color getColorFromName(String name) {
+      switch (name.toLowerCase()) {
+        case 'red':
+          return Colors.red;
+        case 'blue':
+          return Colors.blue;
+        case 'green':
+          return Colors.green;
+        case 'yellow':
+          return Colors.yellow;
+        case 'black':
+          return Colors.black;
+        case 'white':
+          return Colors.white;
+        default:
+          return Colors.grey; // default color if no match
+      }
+    }
 
+    useEffect(() {
+      return null;
+    }, []);
     return Scaffold(
-      appBar: AppBar(title: Text("ProductName")),
+      appBar: AppBar(title: Text(data['name'])),
       body: SingleChildScrollView(
         child: Column(
           spacing: 10.h,
@@ -55,9 +85,14 @@ class ProductDetailScreen extends HookConsumerWidget {
                       controller: pageController,
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
-                        return Container(
-                          color: Colors.amber,
-                          child: Image.asset(productsImages[index]),
+                        return CachedNetworkImage(
+                          placeholder:
+                              (context, url) => Skeleton(
+                                height: double.infinity,
+                                width: double.infinity,
+                              ),
+                          imageUrl: productsImages[index],
+                          fit: BoxFit.cover,
                         );
                       },
                     ),
@@ -105,7 +140,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Product Name",
+                        "${data['name']}",
                         style: TextStyle(
                           fontSize: 18.h,
                           fontWeight: FontWeight.w600,
@@ -136,8 +171,9 @@ class ProductDetailScreen extends HookConsumerWidget {
                           color: Colors.grey,
                         ),
                       ),
+
                       Text(
-                        "100\$",
+                        "${data['price']}\$",
                         style: TextStyle(
                           fontSize: 14.h,
                           fontWeight: FontWeight.w500,
@@ -145,9 +181,16 @@ class ProductDetailScreen extends HookConsumerWidget {
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
-
                       Text(
-                        "89\$",
+                        "${data['discountPercentage']}% off",
+                        style: TextStyle(
+                          fontSize: 10.h,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.red,
+                        ),
+                      ),
+                      Text(
+                        "${discountPrice}\$",
                         style: TextStyle(
                           fontSize: 14.h,
                           fontWeight: FontWeight.w600,
@@ -187,7 +230,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                   Row(
                     spacing: 5.w,
                     children: List.generate(
-                      4,
+                      colors.length,
                       (index) => GestureDetector(
                         onTap: () {
                           selectColor.value = index;
@@ -204,7 +247,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                                           BorderSide.strokeAlignOutside,
                                     )
                                     : Border(),
-                            color: colors[index],
+                            color: getColorFromName(colors[index]),
                             shape: BoxShape.circle,
                           ),
                         ),

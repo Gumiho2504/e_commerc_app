@@ -24,11 +24,18 @@
             "ios": "1:630927949869:ios:09f7dc69c2c55336ce38a4"
           }
         }
+      },
+      "web": {
+        "default": {
+          "projectId": "redux-cfadf",
+          "appId": "1:630927949869:web:09f7dc69c2c55336ce38a4",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
       }
     }
   },
   "firestore": {
-   
     "indexes": "firestore.indexes.json"
   }
 }

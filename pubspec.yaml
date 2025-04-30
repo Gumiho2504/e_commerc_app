@@ -7,6 +7,14 @@ version: 1.0.0+1
 environment:
   sdk: ^3.7.2
 
+icons_launcher:
+  image_path: "assets/images/logo.jpg"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
+
 dependencies:
   flutter:
     sdk: flutter
@@ -26,6 +34,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   hooks_riverpod: ^2.6.1
   shimmer: ^3.0.0
+  icons_launcher: ^3.0.1
 
 dev_dependencies:
   flutter_test:

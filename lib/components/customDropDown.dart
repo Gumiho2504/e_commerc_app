@@ -21,6 +21,7 @@ class CustomDropDown extends HookWidget {
   Widget build(BuildContext context) {
     final isShowItem = useState(false);
     final selectedValue = useState<int?>(currentSelect);
+
     return Column(
       children: [
         IntrinsicWidth(
@@ -79,6 +80,9 @@ class CustomDropDown extends HookWidget {
                 children: List.generate(
                   items.length,
                   (i) => InkWell(
+                    hoverColor: ThemeData().primaryColor,
+                    highlightColor: ThemeData().primaryColor,
+                    splashColor: ThemeData().primaryColor,
                     onTap: () {
                       //if (selectedValue.value != null)
                       selectedValue.value = i;

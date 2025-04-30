@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/components/filter_group.dart';
 import 'package:e_commerc_app/components/grid_cart.dart';
 import 'package:e_commerc_app/components/search_field.dart';
-import 'package:e_commerc_app/user/screens/notification_screen.dart';
+import 'package:e_commerc_app/user/screens/favorite_screen.dart';
+import 'package:e_commerc_app/user/screens/skeleton_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -60,6 +61,8 @@ class SearchScreen extends HookWidget {
         'To': ['All', '1', '10', '20', '30', '40', '50', '60'],
       },
     ];
+    final controller = useScrollController();
+
     final searchQuery = useState("");
     //final lastDocument = useState<DocumentSnapshot?>(null);
     //final hasMore = useState<bool>(true);
@@ -129,11 +132,12 @@ class SearchScreen extends HookWidget {
     useEffect(() {
       queryData.value = buildQuery().snapshots();
 
+      controller.addListener(() {});
       return () {
         //currenctSelect.value = 0;
         selectedFilters.value['category'] = null;
       };
-    }, [category, searchQuery.value, selectedFilters.value]);
+    }, [category, searchQuery.value, selectedFilters.value, controller]);
 
     // Load more items
     // Future<void> loadMore() async {
@@ -208,6 +212,7 @@ class SearchScreen extends HookWidget {
                     Padding(
                       padding: EdgeInsets.only(top: 50.h),
                       child: GridView.builder(
+                        controller: controller,
                         itemCount: data.length,
 
                         gridDelegate:

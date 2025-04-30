@@ -1,13 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/admin/screens/add_item_screen.dart';
-import 'package:e_commerc_app/user/screens/product_detail_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:e_commerc_app/user/screens/home_screen.dart';
 import 'package:e_commerc_app/admin/screens/home_screen.dart' as Admin;
 import 'package:e_commerc_app/auth/login_screen.dart';
@@ -45,7 +43,7 @@ class MyApp extends StatelessWidget {
             'user_home': (context) => HomeScreen(),
             'admin_home': (context) => Admin.HomeScreen(),
             'add_item': (context) => AddItemScreen(),
-            'detail': (context) => ProductDetailScreen(),
+            //  'detail': (context) => ProductDetailScreen(),
           },
           theme: ThemeData(
             buttonTheme: ButtonThemeData(

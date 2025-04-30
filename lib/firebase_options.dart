@@ -17,10 +17,11 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      // throw UnsupportedError(
+      //   'DefaultFirebaseOptions have not been configured for web - '
+      //   'you can reconfigure this by running the FlutterFire CLI again.',
+      // );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -55,6 +56,16 @@ class DefaultFirebaseOptions {
     messagingSenderId: '630927949869',
     projectId: 'redux-cfadf',
     storageBucket: 'redux-cfadf.firebasestorage.app',
+  );
+
+  static FirebaseOptions web = FirebaseOptions(
+    apiKey: "AIzaSyCC26A-kNTZFBLdi-_EWRZoQbIdmoJ8J50",
+    authDomain: "redux-cfadf.firebaseapp.com",
+    projectId: "redux-cfadf",
+    storageBucket: "redux-cfadf.firebasestorage.app",
+    messagingSenderId: "630927949869",
+    appId: "1:630927949869:web:c7cec980eab6532ece38a4",
+    measurementId: "G-DM357X8B8F",
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

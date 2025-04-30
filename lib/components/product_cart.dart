@@ -1,21 +1,44 @@
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:e_commerc_app/user/services/user_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:e_commerc_app/user/screens/product_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
-class ProductCart extends StatelessWidget {
-  const ProductCart({Key? key, required this.data}) : super(key: key);
+class ProductCart extends HookConsumerWidget {
+  const ProductCart({super.key, required this.data});
   final QueryDocumentSnapshot data;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userService = ref.watch(userProvider);
     final discountPercent = 100.0 - double.parse(data['discountPercentage']);
     final price = data['price'];
     final discountPrice = price * discountPercent / 100;
+    final isFavorite = useState(false);
+
+    Stream<List<Map<String, dynamic>>> favoriteItems =
+        userService.getFavoriteItems();
+
+    useEffect(() {
+      final subscription = userService.getFavoriteItems().listen((items) {
+        final exists = items.any((item) => item['itemId'] == data.id);
+        isFavorite.value = exists;
+      });
+      return subscription.cancel;
+    }, [data.id]);
 
     //final afterDiscountPrice = "9";
 
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, 'detail');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(data: data),
+          ),
+        );
       },
       child: SizedBox(
         height: 270.h,
@@ -49,7 +72,20 @@ class ProductCart extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: Colors.white,
                     ),
-                    child: Icon(Icons.favorite, color: Colors.red),
+                    child: InkWell(
+                      onTap: () async {
+                        !isFavorite.value
+                            ? await userService.addToFavorite(data.id)
+                            : await userService.deleteFavorite(data.id);
+                        // isFavorite.value = !isFavorite.value;
+                      },
+                      child: Icon(
+                        isFavorite.value
+                            ? Icons.favorite
+                            : Icons.favorite_border_outlined,
+                        color: isFavorite.value ? Colors.red : Colors.grey,
+                      ),
+                    ),
                   ),
                 ),
               ],

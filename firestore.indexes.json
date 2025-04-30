@@ -10,6 +10,16 @@
         { "fieldPath": "price", "order": "ASCENDING" }
       ]
     },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+       
+      ]
+    },
      {
       "collectionGroup": "items",
       "queryScope": "COLLECTION",
