@@ -3,7 +3,6 @@ import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends HookConsumerWidget {
@@ -11,7 +10,7 @@ class ProfileScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authService = AuthService();
+    final authService = ref.watch(authRepositoryProvider);
     final User? user = FirebaseAuth.instance.currentUser;
     final userCollection = FirebaseFirestore.instance.collection('users');
 
@@ -32,6 +31,7 @@ class ProfileScreen extends HookConsumerWidget {
             if (snapShot.data == null) return CircularProgressIndicator();
             var name = snapShot.data['name'];
             var email = snapShot.data['email'];
+            var id = user.uid;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -41,6 +41,10 @@ class ProfileScreen extends HookConsumerWidget {
                 ),
                 Text(
                   email,
+                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12.h),
+                ),
+                Text(
+                  id,
                   style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12.h),
                 ),
               ],

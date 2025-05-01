@@ -1,6 +1,5 @@
-import 'dart:collection';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,12 +9,11 @@ class UserService {
 
   Future<void> addToFavorite(String itemId) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('favorites')
-          .doc(itemId)
-          .set({'itemId': itemId, 'createdAt': FieldValue.serverTimestamp()});
+      await FirebaseFirestore.instance.collection('favorites').doc(itemId).set({
+        'itemId': itemId,
+        'userId': userId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       throw Exception(e);
     }
@@ -23,8 +21,6 @@ class UserService {
 
   Future<void> deleteFavorite(String itemId) async {
     await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
         .collection('favorites')
         .doc(itemId)
         .delete();
@@ -32,9 +28,8 @@ class UserService {
 
   Stream<List<Map<String, dynamic>>> getFavoriteItems() {
     return FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
         .collection('favorites')
+        .where('userId', isEqualTo: userId)
         .snapshots()
         .map(
           (snapshot) =>
@@ -46,6 +41,6 @@ class UserService {
 }
 
 final userProvider = Provider<UserService>((ref) {
-  final user = FirebaseAuth.instance.currentUser;
+  final user = ref.watch(authStateChangesProvider).value;
   return UserService(user!.uid);
 });

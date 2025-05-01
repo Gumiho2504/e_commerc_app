@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/admin/screens/add_item_screen.dart';
+import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
           initialRoute: '/',
           routes: {
             'login': (context) => LoginScreen(),
-            'signup': (context) => SignUpScreen(),
+            'signup': (context) => SignupScreen(),
             'user_home': (context) => HomeScreen(),
             'admin_home': (context) => Admin.HomeScreen(),
             'add_item': (context) => AddItemScreen(),
@@ -64,55 +65,29 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthHandler extends StatefulWidget {
+class AuthHandler extends ConsumerStatefulWidget {
   const AuthHandler({super.key});
-
   @override
-  State<AuthHandler> createState() => _AuthHandlerState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _AuthHandlerState();
 }
 
-class _AuthHandlerState extends State<AuthHandler> {
-  User? _currentUser;
-  String? _role;
-  @override
-  void initState() {
-    _initializeAuthState();
-    super.initState();
-  }
-
-  void _initializeAuthState() {
-    FirebaseAuth.instance.authStateChanges().listen((user) async {
-      if (!mounted) return;
-      setState(() {
-        _currentUser = user;
-      });
-      if (user != null) {
-        final userDoc =
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(user.uid)
-                .get();
-        if (!mounted) return;
-        if (userDoc.exists) {
-          setState(() {
-            _role = userDoc['role'];
-          });
-        }
-      }
-    });
-  }
-
+class _AuthHandlerState extends ConsumerState<AuthHandler> {
   @override
   Widget build(BuildContext context) {
-    if (_currentUser == null) {
-      ///print(_currentUser);
+    final authStateChange = ref.watch(authStateChangesProvider);
+    final authRepository = ref.watch(authRepositoryProvider);
+    String? role;
 
+    if (authStateChange.value == null) {
       return LoginScreen();
     }
-    if (_role == null) {
+
+    if (authRepository.getUserRole() == "") {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     //print(_role);
-    return _role == 'admin' ? Admin.HomeScreen() : HomeScreen();
+    return authRepository.getUserRole() == 'admin'
+        ? Admin.HomeScreen()
+        : HomeScreen();
   }
 }

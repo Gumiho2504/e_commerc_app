@@ -12,7 +12,7 @@ class HomeScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AuthService authService = AuthService();
+    final AuthService authService = ref.watch(authRepositoryProvider);
     final CollectionReference items = FirebaseFirestore.instance.collection(
       'items',
     );

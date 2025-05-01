@@ -1,18 +1,33 @@
-import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_commerc_app/user/models/user.dart';
+import 'package:e_commerc_app/user/models/user.dart' as user;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthService {
-  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth firebaseAuth;
+  final FirebaseFirestore firestore;
+
+  Stream<User?> get authStateChanges => firebaseAuth.authStateChanges();
+
+  AuthService({required this.firebaseAuth, required this.firestore});
+
+  Future<String> getUserRole() async {
+    final userDoc =
+        await firestore
+            .collection('users')
+            .doc(firebaseAuth.currentUser!.uid)
+            .get();
+    if (userDoc.exists) {
+      return userDoc['role'];
+    }
+    return "";
+  }
 
   Future<String>? signUp(
     String name,
     String email,
     String password,
-    Role role,
+    user.Role role,
   ) async {
     try {
       UserCredential userCredential = await firebaseAuth
@@ -40,10 +55,10 @@ class AuthService {
         password: password,
       );
       DocumentSnapshot userDoc =
-      await firestore
-          .collection('users')
-          .doc(firebaseAuth.currentUser!.uid)
-          .get();
+          await firestore
+              .collection('users')
+              .doc(firebaseAuth.currentUser!.uid)
+              .get();
       return userDoc['role'];
     } on FirebaseAuthException catch (e) {
       return getErrorMessaga(e.code);
@@ -75,3 +90,15 @@ class AuthService {
     }
   }
 }
+
+// Providers
+final authRepositoryProvider = Provider<AuthService>((ref) {
+  return AuthService(
+    firebaseAuth: FirebaseAuth.instance,
+    firestore: FirebaseFirestore.instance,
+  );
+});
+
+final authStateChangesProvider = StreamProvider<User?>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges;
+});

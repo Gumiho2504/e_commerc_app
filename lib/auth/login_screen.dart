@@ -1,42 +1,39 @@
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:e_commerc_app/components/text_input.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  final authService = AuthService();
-  void signin() async {
-    String? result = await authService.signIn(
-      _emailController.text,
-      _passwordController.text,
-    );
-    if (!mounted) return;
-    if (result == 'admin') {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login successful $result')));
-      Navigator.pushNamed(context, 'admin_home');
-    } else if (result == 'user') {
-      Navigator.pushNamed(context, 'user_home');
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(' $result')));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final _emailController = TextEditingController();
+    final _passwordController = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
+    final authService = ref.watch(authRepositoryProvider);
+    void signin() async {
+      String? result = await authService.signIn(
+        _emailController.text,
+        _passwordController.text,
+      );
+      // if (!mounted) return;
+      if (result == 'admin') {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Login successful $result')));
+        Navigator.pushNamed(context, 'admin_home');
+      } else if (result == 'user') {
+        Navigator.pushNamed(context, 'user_home');
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(' $result')));
+      }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Padding(

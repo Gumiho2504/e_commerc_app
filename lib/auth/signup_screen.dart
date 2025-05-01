@@ -1,46 +1,23 @@
 import 'package:e_commerc_app/user/models/user.dart';
 import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:e_commerc_app/components/text_input.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
-
+class SignupScreen extends ConsumerStatefulWidget {
+  const SignupScreen({super.key});
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _SignupScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _userName = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  int?  _selectValue = 0;
+  int? _selectValue = 0;
   final _roles = [Role.user, Role.admin];
-
-  AuthService authService = AuthService();
-
-  void signup() async {
-    String? result = await authService.signUp(
-      _userName.text,
-      _emailController.text,
-      _passwordController.text,
-      _roles[_selectValue!],
-    );
-
-    if (result == 'success') {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('account created successfully')));
-      Navigator.pushNamed(context, 'login');
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('$result')));
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -55,6 +32,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AuthService authService = ref.watch(authRepositoryProvider);
+
+    void signup() async {
+      String? result = await authService.signUp(
+        _userName.text,
+        _emailController.text,
+        _passwordController.text,
+        _roles[_selectValue!],
+      );
+
+      if (result == 'success') {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('account created successfully')));
+        Navigator.pushNamed(context, 'login');
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$result')));
+      }
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -122,7 +121,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
 
                       DropdownButtonFormField(
-
                         alignment: AlignmentDirectional.bottomStart,
                         style: TextStyle(
                           color: ThemeData().primaryColor,

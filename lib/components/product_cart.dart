@@ -1,3 +1,4 @@
+import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:e_commerc_app/user/services/user_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

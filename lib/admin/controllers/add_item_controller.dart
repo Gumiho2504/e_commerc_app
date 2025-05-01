@@ -15,12 +15,6 @@ class Animal {
   Animal(this.name, this.age);
 }
 
-class Cat extends Animal {
-  Cat() : super('Cat', 'gjdf') {
-    print("Helow");
-  }
-}
-
 final addItemProvider = StateNotifierProvider<AddItemNotifier, Item>(
   (ref) => AddItemNotifier(),
 );
