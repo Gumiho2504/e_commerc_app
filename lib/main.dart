@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/admin/screens/add_item_screen.dart';
 import 'package:e_commerc_app/auth/services/auth_service.dart';
+import 'package:e_commerc_app/user/screens/cart_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,10 @@ import 'package:e_commerc_app/user/screens/home_screen.dart';
 import 'package:e_commerc_app/admin/screens/home_screen.dart' as Admin;
 import 'package:e_commerc_app/auth/login_screen.dart';
 import 'package:e_commerc_app/auth/signup_screen.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'firebase_options.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +47,7 @@ class MyApp extends StatelessWidget {
             'user_home': (context) => HomeScreen(),
             'admin_home': (context) => Admin.HomeScreen(),
             'add_item': (context) => AddItemScreen(),
+            'cart': (context) => CartScreen(),
             //  'detail': (context) => ProductDetailScreen(),
           },
           theme: ThemeData(
@@ -65,8 +69,9 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthHandler extends ConsumerStatefulWidget {
+class AuthHandler extends StatefulHookConsumerWidget {
   const AuthHandler({super.key});
+
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _AuthHandlerState();
 }
@@ -76,18 +81,26 @@ class _AuthHandlerState extends ConsumerState<AuthHandler> {
   Widget build(BuildContext context) {
     final authStateChange = ref.watch(authStateChangesProvider);
     final authRepository = ref.watch(authRepositoryProvider);
-    String? role;
+    final role = useState<String?>(null);
 
     if (authStateChange.value == null) {
       return LoginScreen();
     }
 
-    if (authRepository.getUserRole() == "") {
+    useEffect(() {
+      void getRole() async {
+        await Future.delayed(Duration(milliseconds: 2000));
+        role.value = await authRepository.getUserRole();
+      }
+
+      getRole();
+      return null;
+    });
+
+    if (role.value == null) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     //print(_role);
-    return authRepository.getUserRole() == 'admin'
-        ? Admin.HomeScreen()
-        : HomeScreen();
+    return role.value == 'admin' ? Admin.HomeScreen() : HomeScreen();
   }
 }

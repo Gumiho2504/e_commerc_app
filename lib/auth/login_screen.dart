@@ -4,28 +4,34 @@ import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:e_commerc_app/components/text_input.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _emailController = TextEditingController();
-    final _passwordController = TextEditingController();
-    final _formKey = GlobalKey<FormState>();
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
     final authService = ref.watch(authRepositoryProvider);
+    final result = useState<String?>(null);
+    // ignore: deprecated_member_use
+    final isMounted = useIsMounted();
     void signin() async {
-      String? result = await authService.signIn(
-        _emailController.text,
-        _passwordController.text,
+      final respone = await authService.signIn(
+        emailController.text,
+        passwordController.text,
       );
-      // if (!mounted) return;
-      if (result == 'admin') {
+
+      if (!isMounted()) return;
+      result.value = respone;
+      if (result.value == 'admin') {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Login successful $result')));
         Navigator.pushNamed(context, 'admin_home');
-      } else if (result == 'user') {
+      } else if (result.value == 'user') {
         Navigator.pushNamed(context, 'user_home');
       } else {
         ScaffoldMessenger.of(
@@ -74,20 +80,20 @@ class LoginScreen extends HookConsumerWidget {
                 ),
 
                 Form(
-                  key: _formKey,
+                  key: formKey,
                   child: Column(
                     spacing: 10.h,
                     children: [
                       InputComponent(
-                        formKey: _formKey,
-                        controller: _emailController,
+                        formKey: formKey,
+                        controller: emailController,
                         textType: TextInputType.emailAddress,
                         label: 'Email',
                         errorMessage: 'Enter a valid email',
                       ),
                       InputComponent(
-                        formKey: _formKey,
-                        controller: _passwordController,
+                        formKey: formKey,
+                        controller: passwordController,
                         textType: TextInputType.visiblePassword,
                         label: 'Password',
                         errorMessage: 'Password is required',
@@ -100,7 +106,7 @@ class LoginScreen extends HookConsumerWidget {
                           backgroundColor: ThemeData().primaryColor,
                         ),
                         onPressed: () {
-                          if (_formKey.currentState!.validate()) {
+                          if (formKey.currentState!.validate()) {
                             signin();
                           }
                         },
@@ -130,7 +136,7 @@ class LoginScreen extends HookConsumerWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        print('click');
+                        //print('click');
                         Navigator.pushReplacementNamed(context, 'signup');
                       },
                       child: Text(

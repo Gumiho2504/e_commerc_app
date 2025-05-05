@@ -1,19 +1,11 @@
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/admin/model/item.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-
-int currentPage = 0;
-final currentPangeProvider = Provider<int>((ref) => currentPage);
-
-class Animal {
-  String name;
-  String age;
-  Animal(this.name, this.age);
-}
 
 final addItemProvider = StateNotifierProvider<AddItemNotifier, Item>(
   (ref) => AddItemNotifier(),

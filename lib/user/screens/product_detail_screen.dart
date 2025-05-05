@@ -1,20 +1,19 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_commerc_app/user/screens/favorite_screen.dart';
+import 'package:e_commerc_app/user/controllers/cart_controller.dart';
 import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:e_commerc_app/admin/controllers/add_item_controller.dart';
-
 class ProductDetailScreen extends HookConsumerWidget {
   const ProductDetailScreen({super.key, required this.data});
   final QueryDocumentSnapshot<Object?> data;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cartService = ref.read(cartProvider.notifier);
     final state = useState(0);
     final selectColor = useState(0);
     final selectSize = useState(0);
@@ -36,9 +35,16 @@ class ProductDetailScreen extends HookConsumerWidget {
       '${data['image']}',
       '${data['image']}',
     ];
-    final discountPercent = 100.0 - double.parse(data['discountPercentage']);
-    final price = data['price'];
-    final discountPrice = price * discountPercent / 100;
+    double? discountPrice;
+
+    useEffect(() {
+      if (data['discountPercentage'] != null) {
+        final discountPercent = 100 - double.parse(data['discountPercentage']);
+        discountPrice = data['price'] * discountPercent / 100;
+      }
+      return null;
+    });
+
     Color getColorFromName(String name) {
       switch (name.toLowerCase()) {
         case 'red':
@@ -313,7 +319,16 @@ class ProductDetailScreen extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               InkWell(
-                onTap: () {},
+                onTap: () async {
+                  try {
+                    await cartService.addToCart(data.id);
+                    Navigator.of(context).pushNamed('cart');
+                  } catch (e) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
+                  }
+                },
                 child: Container(
                   width: 180.w,
                   decoration: BoxDecoration(

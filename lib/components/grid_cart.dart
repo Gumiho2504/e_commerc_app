@@ -1,3 +1,4 @@
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/screens/product_detail_screen.dart';
@@ -5,17 +6,22 @@ import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class GridCart extends StatelessWidget {
+class GridCart extends HookWidget {
   const GridCart({super.key, required this.data});
 
   final QueryDocumentSnapshot<Object?> data;
 
   @override
   Widget build(BuildContext context) {
-    final discountPercent = 100.0 - double.parse(data['discountPercentage']);
-    final price = data['price'];
-    final discountPrice = price * discountPercent / 100;
+    double? discountPrice;
 
+    useEffect(() {
+      if (data['discountPercentage'] != null) {
+        final discountPercent = 100 - double.parse(data['discountPercentage']);
+        discountPrice = data['price'] * discountPercent / 100;
+      }
+      return null;
+    });
     return GestureDetector(
       onTap:
           () => Navigator.push(
@@ -65,17 +71,21 @@ class GridCart extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             fontSize: 11.h,
                             color: Colors.grey.shade400,
-                            decoration: TextDecoration.lineThrough,
+                            decoration:
+                                data['isDiscount']
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none,
                           ),
                           children: [
-                            TextSpan(
-                              text: '${data['discountPercentage']}%',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10.h,
-                                color: Colors.red.shade400,
+                            if (data['isDiscount'])
+                              TextSpan(
+                                text: '${data['discountPercentage']}%',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10.h,
+                                  color: Colors.red.shade400,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -94,14 +104,15 @@ class GridCart extends StatelessWidget {
                           );
                         }),
                       ),
-                      Text(
-                        "${discountPrice}\$",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red,
-                          fontSize: 10.h,
+                      if (data['isDiscount'])
+                        Text(
+                          "${discountPrice}\$",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red,
+                            fontSize: 10.h,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

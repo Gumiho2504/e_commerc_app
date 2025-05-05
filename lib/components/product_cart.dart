@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerc_app/auth/services/auth_service.dart';
+import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:e_commerc_app/user/services/user_service.dart';
+import 'package:e_commerc_app/user/services/favorite_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/screens/product_detail_screen.dart';
@@ -13,22 +15,21 @@ class ProductCart extends HookConsumerWidget {
   final QueryDocumentSnapshot data;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userService = ref.watch(userProvider);
-    final discountPercent = 100.0 - double.parse(data['discountPercentage']);
-    final price = data['price'];
-    final discountPrice = price * discountPercent / 100;
+    final userService = ref.watch(favoriteProvider);
     final isFavorite = useState(false);
-
-    Stream<List<Map<String, dynamic>>> favoriteItems =
-        userService.getFavoriteItems();
+    final discountPrice = useState<double?>(null);
 
     useEffect(() {
       final subscription = userService.getFavoriteItems().listen((items) {
         final exists = items.any((item) => item['itemId'] == data.id);
         isFavorite.value = exists;
       });
+      if (data['isDiscount']) {
+        final discountPercent = 100 - double.parse(data['discountPercentage']);
+        discountPrice.value = data['price'] * discountPercent / 100;
+      }
       return subscription.cancel;
-    }, [data.id]);
+    }, []);
 
     //final afterDiscountPrice = "9";
 
@@ -53,12 +54,17 @@ class ProductCart extends HookConsumerWidget {
                   height: 200.h,
                   width: 200.w,
                   padding: EdgeInsets.all(0.h),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(20.h),
-                    image: DecorationImage(
+
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10.h),
+                    child: CachedNetworkImage(
+                      placeholder:
+                          (context, _) => Skeleton(
+                            height: double.infinity,
+                            width: double.infinity,
+                          ),
+                      imageUrl: data['image'],
                       fit: BoxFit.cover,
-                      image: NetworkImage(data['image']),
                     ),
                   ),
                 ),
@@ -77,7 +83,7 @@ class ProductCart extends HookConsumerWidget {
                       onTap: () async {
                         !isFavorite.value
                             ? await userService.addToFavorite(data.id)
-                            : await userService.deleteFavorite(data.id);
+                            : await userService.deleteFavoriteByItemId(data.id);
                         // isFavorite.value = !isFavorite.value;
                       },
                       child: Icon(
@@ -105,17 +111,21 @@ class ProductCart extends HookConsumerWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: 16.h,
                       color: Colors.grey.shade400,
-                      decoration: TextDecoration.lineThrough,
+                      decoration:
+                          data['isDiscount']
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
                     ),
                     children: [
-                      TextSpan(
-                        text: '${data['discountPercentage']}%',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.h,
-                          color: Colors.red.shade400,
+                      if (data['isDiscount'])
+                        TextSpan(
+                          text: '${data['discountPercentage']}%',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.h,
+                            color: Colors.red.shade400,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -129,14 +139,15 @@ class ProductCart extends HookConsumerWidget {
                     return Icon(Icons.star, color: Colors.yellow, size: 12.h);
                   }),
                 ),
-                Text(
-                  "$discountPrice\$",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red,
-                    fontSize: 12.h,
+                if (data['isDiscount'])
+                  Text(
+                    "${discountPrice.value}\$",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red,
+                      fontSize: 12.h,
+                    ),
                   ),
-                ),
               ],
             ),
           ],

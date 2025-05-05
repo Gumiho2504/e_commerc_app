@@ -30,11 +30,11 @@ class AuthService {
     user.Role role,
   ) async {
     try {
-      UserCredential userCredential = await firebaseAuth
-          .createUserWithEmailAndPassword(
-            email: email.trim(),
-            password: password.trim(),
-          );
+      //UserCredential userCredential =
+      await firebaseAuth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
       await firestore
           .collection('users')
           .doc(firebaseAuth.currentUser!.uid)

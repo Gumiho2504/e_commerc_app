@@ -15,3 +15,5 @@ class User {
 }
 
 enum Role { admin, user }
+
+class Product {}
