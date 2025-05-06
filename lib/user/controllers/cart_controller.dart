@@ -67,7 +67,7 @@ class CartNotifier extends StateNotifier<List<CartItem>>
         ),
       ];
     }
-    saveCartToFireStore();
+    await saveCartToFireStore();
   }
 
   @override
@@ -106,6 +106,7 @@ class CartNotifier extends StateNotifier<List<CartItem>>
       removeFromCart(itemId);
       return;
     }
+
     state = [
       for (final item in state)
         if (item.productId == itemId)
@@ -119,5 +120,17 @@ class CartNotifier extends StateNotifier<List<CartItem>>
           item,
     ];
     saveCartToFireStore();
+  }
+
+  Future<String> getProductImage(String itemId) async {
+    final firestore = FirebaseFirestore.instance;
+    final docSnapshot = await firestore.collection('items').doc(itemId).get();
+
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data();
+      return data?['image'] as String? ?? "";
+    } else {
+      return "";
+    }
   }
 }

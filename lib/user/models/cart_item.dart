@@ -24,7 +24,7 @@ class CartItem {
 
   factory CartItem.fromFirestore(Map<String, dynamic> data) {
     return CartItem(
-      productId: data['productId'] ?? '',
+      productId: data['itemId'],
       name: data['name'] ?? '',
       price: (data['price'] ?? 0).toDouble(),
       quantity: data['quantity'] ?? 1,

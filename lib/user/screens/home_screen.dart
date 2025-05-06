@@ -1,10 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/controllers/cart_controller.dart';
-import 'package:e_commerc_app/user/services/cart_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -53,8 +51,8 @@ class HomeScreen extends HookConsumerWidget {
             children: [
               MainScreen(pageController: pageController),
               SearchScreen(category: searchByCategory),
-              FavoriteScreen(),
-              ProfileScreen(),
+              const FavoriteScreen(),
+              const ProfileScreen(),
             ],
             //itemCount: screens.length,
             // itemBuilder: (context, index) => screens[index],
@@ -141,6 +139,19 @@ class HomeScreen extends HookConsumerWidget {
             error: (err, stack) => Text('Error: $err'),
             loading: () => CircularProgressIndicator(),
           ),
+        Positioned(
+          bottom: -2.h,
+          left: 0,
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 500),
+            height: 5.h,
+            width: currentScreen.value == index ? 40.w : 0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(3.h),
+              color: ThemeData().primaryColor,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -163,7 +174,7 @@ class MainScreen extends HookConsumerWidget {
     final CollectionReference categories = FirebaseFirestore.instance
         .collection('categories');
     final state = ref.watch(addItemProvider);
-    final scrollController = useScrollController();
+    final scrollController = useScrollController(initialScrollOffset: -2000);
     var cartButton = GestureDetector(
       onTap: () => Navigator.of(context).pushNamed('cart'),
       child: Stack(
@@ -222,6 +233,15 @@ class MainScreen extends HookConsumerWidget {
         }
       });
 
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.hasClients) {
+          controller.animateTo(
+            0.0,
+            duration: Duration(milliseconds: 800),
+            curve: Curves.easeOutCubic,
+          );
+        }
+      });
       return null;
     }, [controller]);
 
@@ -308,6 +328,7 @@ class MainScreen extends HookConsumerWidget {
                 return SizedBox(
                   height: 270.h,
                   child: ListView.separated(
+                    controller: scrollController,
                     itemCount: 2,
                     scrollDirection: Axis.horizontal,
                     separatorBuilder: (context, index) => SizedBox(width: 10.w),

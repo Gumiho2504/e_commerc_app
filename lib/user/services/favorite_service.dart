@@ -1,15 +1,53 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_commerc_app/auth/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:e_commerc_app/auth/services/auth_service.dart';
+
+class FavoriteItem {
+  String itemId;
+  FavoriteItem({required this.itemId});
+  Map<String, dynamic> toFirestore() {
+    return {'itemId': itemId};
+  }
+
+  factory FavoriteItem.fromFirestore(Map<String, dynamic> data) {
+    return FavoriteItem(itemId: data['itemId'] ?? '');
+  }
+
+  @override
+  String toString() => 'FavoriteItem(itemId: $itemId)';
+}
+
+abstract class FavoriteItemService {}
+
+// Define the StreamNotifier
+class FavoriteItemNotifier extends StreamNotifier<List<FavoriteItem>>
+    implements FavoriteItemService {
+  void add() {
+    final items = FavoriteItem(itemId: "djff");
+    state = AsyncValue.data([...state.value ?? [], items]);
+  }
+
+  @override
+  Stream<List<FavoriteItem>> build() async* {
+    final firestore = FirebaseFirestore.instance;
+    yield [];
+  }
+}
+
+// Define the StreamNotifierProvider
+final favoriteItemProvider =
+    StreamNotifierProvider<FavoriteItemNotifier, List<FavoriteItem>>(
+      () => FavoriteItemNotifier(),
+    );
 
 class FavoriteService {
   final String userId;
 
-  FavoriteService(this.userId) ;
-   
-  
-
-  
+  FavoriteService(this.userId);
 
   Future<void> addToFavorite(String itemId) async {
     try {
@@ -57,7 +95,6 @@ class FavoriteService {
     final favoriteItemsIds =
         favoritesSnapshot.docs.map((doc) => doc['itemId'] as String).toList();
 
-    // Fetch each item's data
     for (String itemId in favoriteItemsIds) {
       final itemSnapshot =
           await FirebaseFirestore.instance
@@ -77,6 +114,7 @@ class FavoriteService {
 }
 
 final favoriteProvider = Provider<FavoriteService>((ref) {
+  ref.keepAlive();
   final user = ref.watch(authStateChangesProvider).value;
   return FavoriteService(user!.uid);
 });

@@ -55,16 +55,19 @@ class ProductCart extends HookConsumerWidget {
                   width: 200.w,
                   padding: EdgeInsets.all(0.h),
 
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10.h),
-                    child: CachedNetworkImage(
-                      placeholder:
-                          (context, _) => Skeleton(
-                            height: double.infinity,
-                            width: double.infinity,
-                          ),
-                      imageUrl: data['image'],
-                      fit: BoxFit.cover,
+                  child: Hero(
+                    tag: "_item_${data['name']}",
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.h),
+                      child: CachedNetworkImage(
+                        placeholder:
+                            (context, _) => Skeleton(
+                              height: double.infinity,
+                              width: double.infinity,
+                            ),
+                        imageUrl: data['image'],
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),

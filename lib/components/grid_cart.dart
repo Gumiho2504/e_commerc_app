@@ -23,13 +23,37 @@ class GridCart extends HookWidget {
       return null;
     });
     return GestureDetector(
-      onTap:
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductDetailScreen(data: data),
-            ),
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder:
+                (context, animation, secondaryAnimation) =>
+                    ProductDetailScreen(data: data),
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) {
+              // Simple fade transition (you can customize this)
+              const begin = 0.0;
+              const end = 1.0;
+              var tween = Tween(begin: begin, end: end);
+              var fadeAnimation = animation.drive(tween);
+
+              return FadeTransition(opacity: fadeAnimation, child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 300),
           ),
+        );
+      },
+      // () => Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => ProductDetailScreen(data: data),
+      //   ),
+      // ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 10.w),
         child: Column(

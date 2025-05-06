@@ -14,6 +14,7 @@ class FavoriteScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userService = ref.watch(favoriteProvider);
+    final favoriteItemService = ref.watch(favoriteItemProvider);
     final isDelete = useState(false);
     useEffect(() {
       // Future.microtask(() async {
