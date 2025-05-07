@@ -220,61 +220,64 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ],
               ),
 
-      bottomNavigationBar: Container(
-        height: 160.h,
-        padding: EdgeInsets.all(10.h),
-        decoration: BoxDecoration(
-          //color: Colors.grey.shade100,
-          border: Border(
-            top: BorderSide(width: 1, color: Colors.grey.shade400),
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Total :",
-                    style: TextStyle(
-                      fontSize: 20.h,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    "$total \$",
-                    style: TextStyle(
-                      fontSize: 20.h,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 60.h,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeData().primaryColor,
-                    overlayColor: Colors.red,
-                  ),
-                  onPressed: () {},
-                  child: Text(
-                    "Order Now",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18.h,
-                      fontWeight: FontWeight.w600,
-                    ),
+      bottomNavigationBar:
+          cartItems.isNotEmpty
+              ? Container(
+                height: 160.h,
+                padding: EdgeInsets.all(10.h),
+                decoration: BoxDecoration(
+                  //color: Colors.grey.shade100,
+                  border: Border(
+                    top: BorderSide(width: 1, color: Colors.grey.shade400),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total :",
+                            style: TextStyle(
+                              fontSize: 20.h,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            "$total \$",
+                            style: TextStyle(
+                              fontSize: 20.h,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 60.h,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ThemeData().primaryColor,
+                            overlayColor: Colors.red,
+                          ),
+                          onPressed: () {},
+                          child: Text(
+                            "Order Now",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18.h,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              : Container(height: 0),
     );
   }
 }

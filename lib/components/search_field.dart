@@ -6,19 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SearchField extends HookConsumerWidget {
-  SearchField({super.key, required this.onchange});
   final void Function(String) onchange;
+  final bool? autoFocus;
 
+  const SearchField({super.key, required this.onchange, this.autoFocus});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
     final controller = useTextEditingController();
     return SizedBox(
       height: 50.h,
 
       child: TextFormField(
         controller: controller,
-        autofocus: false,
+        autofocus: autoFocus ?? false,
         onTapOutside: (value) {
           FocusManager.instance.primaryFocus?.unfocus();
         },

@@ -1,18 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:e_commerc_app/auth/services/auth_service.dart';
+import 'package:e_commerc_app/user/models/item.dart';
 import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:e_commerc_app/user/services/favorite_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/screens/product_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class ProductCart extends HookConsumerWidget {
-  const ProductCart({super.key, required this.data});
-  final QueryDocumentSnapshot data;
+  const ProductCart({super.key, required this.item});
+  final Item item;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userService = ref.watch(favoriteProvider);
@@ -21,12 +20,12 @@ class ProductCart extends HookConsumerWidget {
 
     useEffect(() {
       final subscription = userService.getFavoriteItems().listen((items) {
-        final exists = items.any((item) => item['itemId'] == data.id);
+        final exists = items.any((item) => item['itemId'] == this.item.id);
         isFavorite.value = exists;
       });
-      if (data['isDiscount']) {
-        final discountPercent = 100 - double.parse(data['discountPercentage']);
-        discountPrice.value = data['price'] * discountPercent / 100;
+      if (item.isDiscount) {
+        final discountPercent = 100 - double.parse(item.discountPercentage!);
+        discountPrice.value = item.price * discountPercent / 100;
       }
       return subscription.cancel;
     }, []);
@@ -38,7 +37,7 @@ class ProductCart extends HookConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductDetailScreen(data: data),
+            builder: (context) => ProductDetailScreen(item: item),
           ),
         );
       },
@@ -56,7 +55,7 @@ class ProductCart extends HookConsumerWidget {
                   padding: EdgeInsets.all(0.h),
 
                   child: Hero(
-                    tag: "_item_${data['name']}",
+                    tag: "_item_${item.id}",
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10.h),
                       child: CachedNetworkImage(
@@ -65,7 +64,7 @@ class ProductCart extends HookConsumerWidget {
                               height: double.infinity,
                               width: double.infinity,
                             ),
-                        imageUrl: data['image'],
+                        imageUrl: item.image!,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -85,8 +84,10 @@ class ProductCart extends HookConsumerWidget {
                     child: InkWell(
                       onTap: () async {
                         !isFavorite.value
-                            ? await userService.addToFavorite(data.id)
-                            : await userService.deleteFavoriteByItemId(data.id);
+                            ? await userService.addToFavorite(item.id!)
+                            : await userService.deleteFavoriteByItemId(
+                              item.id!,
+                            );
                         // isFavorite.value = !isFavorite.value;
                       },
                       child: Icon(
@@ -104,25 +105,25 @@ class ProductCart extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  data['name'],
+                  item.name,
                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.h),
                 ),
                 RichText(
                   text: TextSpan(
-                    text: '${data['price']}\$',
+                    text: '${item.price}\$',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16.h,
                       color: Colors.grey.shade400,
                       decoration:
-                          data['isDiscount']
+                          item.isDiscount
                               ? TextDecoration.lineThrough
                               : TextDecoration.none,
                     ),
                     children: [
-                      if (data['isDiscount'])
+                      if (item.isDiscount)
                         TextSpan(
-                          text: '${data['discountPercentage']}%',
+                          text: '${item.discountPercentage}%',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 12.h,
@@ -142,7 +143,7 @@ class ProductCart extends HookConsumerWidget {
                     return Icon(Icons.star, color: Colors.yellow, size: 12.h);
                   }),
                 ),
-                if (data['isDiscount'])
+                if (item.isDiscount)
                   Text(
                     "${discountPrice.value}\$",
                     style: TextStyle(

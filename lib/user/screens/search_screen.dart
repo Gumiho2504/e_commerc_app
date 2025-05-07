@@ -68,7 +68,9 @@ class SearchScreen extends HookConsumerWidget {
     final searchQuery = useState("");
     final lastDocument = useState<DocumentSnapshot?>(null);
     final hasMore = useState<bool>(true);
-    final queryData = useState<Stream<QuerySnapshot>?>(null);
+    final queryData = useState<Stream<QuerySnapshot<Map<String, dynamic>>>?>(
+      null,
+    );
     final currenentCategory = useState<String?>(categoryF);
     final currenctSelect = useState(0);
     final selectedFilters = useState<Map<String, dynamic>>({
@@ -148,6 +150,7 @@ class SearchScreen extends HookConsumerWidget {
     }, [category, searchQuery.value, selectedFilters.value, controller]);
 
     // Load more items
+    // ignore: unused_element
     Future<void> loadMore() async {
       if (!hasMore.value || lastDocument.value == null) return;
 
@@ -172,6 +175,7 @@ class SearchScreen extends HookConsumerWidget {
             onchange: (value) {
               searchQuery.value = value;
             },
+            autoFocus: categoryF == null,
           ),
 
           //filter Design
@@ -214,7 +218,13 @@ class SearchScreen extends HookConsumerWidget {
                         itemBuilder:
                             (context, index) =>
                             //color: Colors.amber,
-                            GridCart(data: data[index]),
+                            GridCart(
+                              data:
+                                  data[index]
+                                      as QueryDocumentSnapshot<
+                                        Map<String, dynamic>
+                                      >,
+                            ),
                       ),
                     );
                   },

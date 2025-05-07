@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:e_commerc_app/user/screens/home_screen.dart';
+// ignore: library_prefixes
 import 'package:e_commerc_app/admin/screens/home_screen.dart' as Admin;
 import 'package:e_commerc_app/auth/login_screen.dart';
 import 'package:e_commerc_app/auth/signup_screen.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'firebase_options.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 void main() async {

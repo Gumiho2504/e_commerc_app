@@ -1,3 +1,4 @@
+import 'package:e_commerc_app/user/models/item.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,7 +10,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class GridCart extends HookWidget {
   const GridCart({super.key, required this.data});
 
-  final QueryDocumentSnapshot<Object?> data;
+  final QueryDocumentSnapshot<Map<String, dynamic>?> data;
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +25,14 @@ class GridCart extends HookWidget {
     });
     return GestureDetector(
       onTap: () {
+        final item = data.data() as Map<String, dynamic>;
+        item['id'] = data.id;
         Navigator.push(
           context,
           PageRouteBuilder(
             pageBuilder:
                 (context, animation, secondaryAnimation) =>
-                    ProductDetailScreen(data: data),
+                    ProductDetailScreen(item: Item.fromFirestore(item)),
             transitionsBuilder: (
               context,
               animation,

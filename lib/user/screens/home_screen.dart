@@ -3,6 +3,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/controllers/cart_controller.dart';
+import 'package:e_commerc_app/user/models/item.dart';
+import 'package:e_commerc_app/user/services/item_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -221,28 +223,41 @@ class MainScreen extends HookConsumerWidget {
         ),
       ),
     );
-    //late List<String> categoriesImage = [];
+
+    final products = ref.watch(itemNotiferProvider);
+    final notifier = ref.read(itemNotiferProvider.notifier);
     final controller = useScrollController();
     useEffect(() {
-      controller.addListener(() {
+      if (products.isEmpty && notifier.hasMore && !notifier.isLoading) {
+        notifier.fetchItems();
+      }
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          0.0,
+          duration: Duration(milliseconds: 800),
+          curve: Curves.easeOutCubic,
+        );
+      }
+
+      void scrollListener() {
         if (controller.hasClients) {
-          if (controller.offset >= controller.position.maxScrollExtent &&
-              !controller.position.outOfRange) {
-            //debugPrint("Reached the end!");
+          if (controller.positions.isNotEmpty) {
+            if (controller.offset >= controller.position.maxScrollExtent &&
+                !controller.position.outOfRange) {
+              if (notifier.hasMore && !notifier.isLoading) {
+                notifier.fetchItems();
+              }
+            }
           }
         }
-      });
+      }
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (controller.hasClients) {
-          controller.animateTo(
-            0.0,
-            duration: Duration(milliseconds: 800),
-            curve: Curves.easeOutCubic,
-          );
-        }
-      });
-      return null;
+      controller.addListener(scrollListener);
+
+      return () {
+        //controller.dispose();
+        // controller.removeListener(scrollListener);
+      };
     }, [controller]);
 
     return SingleChildScrollView(
@@ -253,7 +268,8 @@ class MainScreen extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [logo, cartButton],
           ),
-          TopBanner(),
+
+          const TopBanner(),
           section("Shop by category", context),
           SizedBox(
             height: 100.h,
@@ -278,19 +294,12 @@ class MainScreen extends HookConsumerWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            // Navigator.pushAndRemoveUntil(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder:
-                            //         (context) => HomeScreen(
-                            //           initScreen: 1,
-                            //           searchByCategory: category,
-                            //         ),
-                            //   ),
-                            //   (route) => false,
-                            // );
                             searchQueryNotfier.state = category;
-                            pageController.jumpToPage(1);
+                            pageController.animateToPage(
+                              1,
+                              duration: Duration(milliseconds: 200),
+                              curve: Curves.easeInCirc,
+                            );
                           },
                           child: Container(
                             margin: EdgeInsets.only(right: 15.w),
@@ -320,45 +329,76 @@ class MainScreen extends HookConsumerWidget {
             ),
           ),
           section("Curated for you", context),
-          StreamBuilder(
-            stream: items.snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.data == null ||
-                  snapshot.connectionState == ConnectionState.waiting) {
-                return SizedBox(
-                  height: 270.h,
-                  child: ListView.separated(
-                    controller: scrollController,
-                    itemCount: 2,
-                    scrollDirection: Axis.horizontal,
-                    separatorBuilder: (context, index) => SizedBox(width: 10.w),
-                    itemBuilder: (context, index) {
-                      return SizedBox(
-                        height: 270.h,
-                        width: 270.h,
-                        child: SkeletonBox(),
-                      );
-                    },
-                  ),
-                );
-              }
-              final items = snapshot.data!.docs;
-              return SizedBox(
+          // StreamBuilder(
+          //   stream: items.snapshots(),
+          //   builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          //     if (snapshot.data == null ||
+          //         snapshot.connectionState == ConnectionState.waiting) {
+          //       return SizedBox(
+          //         height: 270.h,
+          //         child: ListView.separated(
+          //           controller: scrollController,
+          //           itemCount: 2,
+          //           scrollDirection: Axis.horizontal,
+          //           separatorBuilder: (context, index) => SizedBox(width: 10.w),
+          //           itemBuilder: (context, index) {
+          //             return SizedBox(
+          //               height: 270.h,
+          //               width: 270.h,
+          //               child: SkeletonBox(),
+          //             );
+          //           },
+          //         ),
+          //       );
+          //     }
+          //     final items = snapshot.data!.docs;
+          //     return SizedBox(
+          //       height: 270.h,
+          //       child: ListView.builder(
+          //         controller: scrollController,
+          //         scrollDirection: Axis.horizontal,
+          //         itemCount: items.length,
+          //         itemBuilder: (context, index) {
+          //           return Padding(
+          //             padding: const EdgeInsets.only(right: 20),
+          //             child: ProductCart(data: items[index]),
+          //           );
+          //         },
+          //       ),
+          //     );
+          //   },
+          // ),
+          notifier.isLoading
+              ? SizedBox(
+                height: 270.h,
+                child: ListView.separated(
+                  // controller: scrollController,
+                  itemCount: 2,
+                  scrollDirection: Axis.horizontal,
+                  separatorBuilder: (context, index) => SizedBox(width: 10.w),
+                  itemBuilder: (context, index) {
+                    return SizedBox(
+                      height: 270.h,
+                      width: 270.h,
+                      child: SkeletonBox(),
+                    );
+                  },
+                ),
+              )
+              : SizedBox(
                 height: 270.h,
                 child: ListView.builder(
                   controller: controller,
                   scrollDirection: Axis.horizontal,
-                  itemCount: items.length,
+                  itemCount: products.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.only(right: 20),
-                      child: ProductCart(data: items[index]),
+                      child: ProductCart(item: products[index]),
                     );
                   },
                 ),
-              );
-            },
-          ),
+              ),
         ],
       ),
     );

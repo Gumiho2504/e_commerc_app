@@ -2,6 +2,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/controllers/cart_controller.dart';
+import 'package:e_commerc_app/user/models/item.dart';
 import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -9,8 +10,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class ProductDetailScreen extends HookConsumerWidget {
-  const ProductDetailScreen({super.key, required this.data});
-  final QueryDocumentSnapshot<Object?> data;
+  const ProductDetailScreen({super.key, required this.item});
+  final Item item;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartService = ref.read(cartProvider.notifier);
@@ -29,19 +30,15 @@ class ProductDetailScreen extends HookConsumerWidget {
       Container(color: Colors.green),
     ];
 
-    final colors = data['colors'] as List;
-    final sizes = data['size'];
-    final productsImages = [
-      '${data['image']}',
-      '${data['image']}',
-      '${data['image']}',
-    ];
+    final colors = item.colors;
+    final sizes = item.size;
+    final productsImages = ['${item.image}', '${item.image}', '${item.image}'];
     double? discountPrice;
 
     useEffect(() {
-      if (data['discountPercentage'] != null) {
-        final discountPercent = 100 - double.parse(data['discountPercentage']);
-        discountPrice = data['price'] * discountPercent / 100;
+      if (item.discountPercentage != null) {
+        final discountPercent = 100 - double.parse(item.discountPercentage!);
+        discountPrice = item.price * discountPercent / 100;
       }
       return null;
     });
@@ -69,7 +66,7 @@ class ProductDetailScreen extends HookConsumerWidget {
       return null;
     }, []);
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.white, title: Text(data['name'])),
+      appBar: AppBar(backgroundColor: Colors.white, title: Text(item.name)),
       body: SingleChildScrollView(
         child:
             isLoading.value
@@ -96,7 +93,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                               scrollDirection: Axis.horizontal,
                               itemBuilder: (context, index) {
                                 return Hero(
-                                  tag: "_item_${data['name']}",
+                                  tag: "_item_${item.id}",
                                   createRectTween:
                                       (begin, end) =>
                                           RectTween(begin: begin, end: end),
@@ -156,7 +153,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "${data['name']}",
+                                item.name,
                                 style: TextStyle(
                                   fontSize: 18.h,
                                   fontWeight: FontWeight.w600,
@@ -192,7 +189,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                               ),
 
                               Text(
-                                "${data['price']}\$",
+                                "${item.price}\$",
                                 style: TextStyle(
                                   fontSize: 14.h,
                                   fontWeight: FontWeight.w500,
@@ -201,7 +198,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                                 ),
                               ),
                               Text(
-                                "${data['discountPercentage']}% off",
+                                "${item.discountPercentage}% off",
                                 style: TextStyle(
                                   fontSize: 10.h,
                                   fontWeight: FontWeight.w500,
@@ -209,7 +206,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                                 ),
                               ),
                               Text(
-                                "${discountPrice}\$",
+                                "$discountPrice\$",
                                 style: TextStyle(
                                   fontSize: 14.h,
                                   fontWeight: FontWeight.w600,
@@ -336,7 +333,7 @@ class ProductDetailScreen extends HookConsumerWidget {
                 onTap: () async {
                   try {
                     isLoading.value = true;
-                    await cartService.addToCart(data.id);
+                    await cartService.addToCart(item.id!);
                     await Future.delayed(Duration(milliseconds: 500));
                     isLoading.value = false;
                     Navigator.of(context).pushNamed('cart');
