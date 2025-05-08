@@ -6,6 +6,7 @@ import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:e_commerc_app/user/services/favorite_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:e_commerc_app/components/primary_button.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,6 +27,7 @@ class FavoriteScreen extends HookConsumerWidget {
 
       return null;
     }, []);
+    useAutomaticKeepAlive();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 14.h,
@@ -183,7 +185,7 @@ class FavoriteScreen extends HookConsumerWidget {
                           ),
                         if (item['isDiscount'])
                           Text(
-                            "${afterDiscountPrice}\$",
+                            "$afterDiscountPrice\$",
                             style: TextStyle(
                               fontSize: 14.h,
                               fontWeight: FontWeight.w600,

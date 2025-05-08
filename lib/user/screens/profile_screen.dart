@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 class ProfileScreen extends HookConsumerWidget {
   const ProfileScreen({super.key});
@@ -27,7 +28,7 @@ class ProfileScreen extends HookConsumerWidget {
       {'Privatecy': Icons.privacy_tip},
       {'Logout': Icons.logout},
     ];
-
+    useAutomaticKeepAlive();
     return Column(
       spacing: 10.h,
       crossAxisAlignment: CrossAxisAlignment.start,

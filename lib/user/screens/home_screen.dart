@@ -259,7 +259,7 @@ class MainScreen extends HookConsumerWidget {
         // controller.removeListener(scrollListener);
       };
     }, [controller]);
-
+    useAutomaticKeepAlive();
     return SingleChildScrollView(
       child: Column(
         spacing: 20.h,

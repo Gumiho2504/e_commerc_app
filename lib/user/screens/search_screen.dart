@@ -151,6 +151,7 @@ class SearchScreen extends HookConsumerWidget {
 
     // Load more items
     // ignore: unused_element
+
     Future<void> loadMore() async {
       if (!hasMore.value || lastDocument.value == null) return;
 
@@ -186,7 +187,7 @@ class SearchScreen extends HookConsumerWidget {
                   stream: queryData.value,
                   builder: (context, AsyncSnapshot<QuerySnapshot> snapshoot) {
                     if (snapshoot.connectionState == ConnectionState.waiting) {
-                      return Padding( 
+                      return Padding(
                         padding: EdgeInsets.only(top: 50.h),
                         child: gridSkeleton(),
                       );
