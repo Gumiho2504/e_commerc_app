@@ -186,7 +186,7 @@ class SearchScreen extends HookConsumerWidget {
                   stream: queryData.value,
                   builder: (context, AsyncSnapshot<QuerySnapshot> snapshoot) {
                     if (snapshoot.connectionState == ConnectionState.waiting) {
-                      return Padding(
+                      return Padding( 
                         padding: EdgeInsets.only(top: 50.h),
                         child: gridSkeleton(),
                       );
