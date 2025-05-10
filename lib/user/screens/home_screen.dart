@@ -3,8 +3,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/controllers/cart_controller.dart';
-import 'package:e_commerc_app/user/models/item.dart';
-import 'package:e_commerc_app/user/services/item_service.dart';
+
+import 'package:e_commerc_app/user/providers/item_provider.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,15 +26,14 @@ class HomeScreen extends HookConsumerWidget {
   final String? searchByCategory;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favoriteItemCount = ref.watch(favoriteItemsCountProvider);
     final pageController = usePageController(initialPage: initScreen ?? 0);
     final searchQueryNotfier = ref.read(searchQueryProvider.notifier);
-    final List<Widget> screens = [
-      MainScreen(pageController: pageController),
-      SearchScreen(category: searchByCategory),
-      FavoriteScreen(),
-      ProfileScreen(),
-    ];
+    // final List<Widget> screens = [
+    //   MainScreen(pageController: pageController),
+    //   SearchScreen(category: searchByCategory),
+    //   FavoriteScreen(),
+    //   ProfileScreen(pageController: pageController),
+    // ];
 
     List<IconData> buttomIcons = [
       Icons.home,
@@ -54,7 +54,7 @@ class HomeScreen extends HookConsumerWidget {
               MainScreen(pageController: pageController),
               SearchScreen(category: searchByCategory),
               const FavoriteScreen(),
-              const ProfileScreen(),
+              ProfileScreen(pageController: pageController),
             ],
             //itemCount: screens.length,
             // itemBuilder: (context, index) => screens[index],
@@ -71,23 +71,17 @@ class HomeScreen extends HookConsumerWidget {
           children: List.generate(
             buttomIcons.length,
 
-            (index) => bottomIcon(
-              currentScreen,
-              buttomIcons[index],
-              index,
-              favoriteItemCount,
+            (index) =>
+                bottomIcon(currentScreen, buttomIcons[index], index, 1, () {
+                  searchQueryNotfier.state = null;
 
-              () {
-                searchQueryNotfier.state = null;
-
-                currentScreen.value = index;
-                pageController.jumpToPage(
-                  currentScreen.value,
-                  // duration: Duration(milliseconds: 100),
-                  // curve: Curves.bounceIn,
-                );
-              },
-            ),
+                  currentScreen.value = index;
+                  pageController.jumpToPage(
+                    currentScreen.value,
+                    // duration: Duration(milliseconds: 100),
+                    // curve: Curves.bounceIn,
+                  );
+                }),
           ),
         ),
       ),
@@ -98,63 +92,66 @@ class HomeScreen extends HookConsumerWidget {
     ValueNotifier<int> currentScreen,
     IconData icon,
     int index,
-    AsyncValue<int> favoriteItemCount,
+    int favoriteItemCount,
     Function() onPressed,
   ) {
-    return Stack(
-      children: [
-        IconButton(
-          iconSize: 30.h,
-          color:
-              currentScreen.value == index
-                  ? ThemeData().primaryColor
-                  : Colors.grey,
-          onPressed: onPressed,
-          icon: Icon(icon),
-        ),
+    return Consumer(
+      builder: (context, ref, child) {
+        final favoriteItemCount =
+            ref.watch(favoriteItemNotifierProvider).length;
+        return Stack(
+          children: [
+            IconButton(
+              iconSize: 30.h,
+              color:
+                  currentScreen.value == index
+                      ? ThemeData().primaryColor
+                      : Colors.grey,
+              onPressed: onPressed,
+              icon: Icon(icon),
+            ),
 
-        if (icon == Icons.favorite)
-          favoriteItemCount.when(
-            data:
-                (count) => Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Container(
-                    height: 14.h,
-                    width: 14.h,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.red,
-                    ),
-                    child: Center(
-                      child: Text(
-                        "${count}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8.h,
-                          fontWeight: FontWeight.bold,
-                        ),
+            if (icon == Icons.favorite &&
+                favoriteItemCount > 0 &&
+                !ref.read(favoriteItemNotifierProvider.notifier).isLoading)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  height: 14.h,
+                  width: 14.h,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red,
+                  ),
+                  child: Center(
+                    child: Text(
+                      "$favoriteItemCount",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8.h,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-            error: (err, stack) => Text('Error: $err'),
-            loading: () => CircularProgressIndicator(),
-          ),
-        Positioned(
-          bottom: -2.h,
-          left: 0,
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 500),
-            height: 5.h,
-            width: currentScreen.value == index ? 40.w : 0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(3.h),
-              color: ThemeData().primaryColor,
+              ),
+            Positioned(
+              bottom: -2.h,
+              left: 0,
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 500),
+                height: 5.h,
+                width: currentScreen.value == index ? 40.w : 0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(3.h),
+                  color: ThemeData().primaryColor,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

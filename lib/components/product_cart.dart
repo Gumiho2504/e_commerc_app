@@ -84,10 +84,12 @@ class ProductCart extends HookConsumerWidget {
                     child: InkWell(
                       onTap: () async {
                         !isFavorite.value
-                            ? await userService.addToFavorite(item.id!)
-                            : await userService.deleteFavoriteByItemId(
-                              item.id!,
-                            );
+                            ? await ref
+                                .read(favoriteItemNotifierProvider.notifier)
+                                .addToFavorite(item.id!)
+                            : await ref
+                                .read(favoriteItemNotifierProvider.notifier)
+                                .removeFavoriteItem(item.id!);
                         // isFavorite.value = !isFavorite.value;
                       },
                       child: Icon(

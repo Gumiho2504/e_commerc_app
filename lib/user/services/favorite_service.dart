@@ -6,43 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:e_commerc_app/auth/services/auth_service.dart';
 
-class FavoriteItem {
-  String itemId;
-  FavoriteItem({required this.itemId});
-  Map<String, dynamic> toFirestore() {
-    return {'itemId': itemId};
-  }
 
-  factory FavoriteItem.fromFirestore(Map<String, dynamic> data) {
-    return FavoriteItem(itemId: data['itemId'] ?? '');
-  }
-
-  @override
-  String toString() => 'FavoriteItem(itemId: $itemId)';
-}
-
-abstract class FavoriteItemService {}
-
-// Define the StreamNotifier
-class FavoriteItemNotifier extends StreamNotifier<List<FavoriteItem>>
-    implements FavoriteItemService {
-  void add() {
-    final items = FavoriteItem(itemId: "djff");
-    state = AsyncValue.data([...state.value ?? [], items]);
-  }
-
-  @override
-  Stream<List<FavoriteItem>> build() async* {
-    final firestore = FirebaseFirestore.instance;
-    yield [];
-  }
-}
-
-// Define the StreamNotifierProvider
-final favoriteItemProvider =
-    StreamNotifierProvider<FavoriteItemNotifier, List<FavoriteItem>>(
-      () => FavoriteItemNotifier(),
-    );
 
 class FavoriteService {
   final String userId;
@@ -114,13 +78,41 @@ class FavoriteService {
 }
 
 final favoriteProvider = Provider<FavoriteService>((ref) {
-  ref.keepAlive();
   final user = ref.watch(authStateChangesProvider).value;
   return FavoriteService(user!.uid);
 });
 
-final favoriteItemsCountProvider = FutureProvider<int>((ref) async {
-  final favorites = await ref.watch(favoriteProvider).getFavoriteItemsData();
-  // print("length: ${favorites.length}"); // Corrected typo
-  return favorites.length;
-});
+final favoriteItemNotifierProvider =
+    StateNotifierProvider<FavoriteNotifier, List<Map<String, dynamic>>>((ref) {
+      return FavoriteNotifier(ref.watch(favoriteProvider));
+    });
+
+class FavoriteNotifier extends StateNotifier<List<Map<String, dynamic>>> {
+  final FavoriteService favoriteService;
+  FavoriteNotifier(this.favoriteService) : super([]) {
+    getFavoriteItem();
+  }
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  Future<void> getFavoriteItem() async {
+    _isLoading = true;
+    state = await favoriteService.getFavoriteItemsData();
+    _isLoading = false;
+  }
+
+  Future<void> addToFavorite(String itemId) async {
+    await favoriteService.addToFavorite(itemId);
+    state = await favoriteService.getFavoriteItemsData();
+  }
+
+  Future<void> removeFavoriteItem(String itemId) async {
+    await favoriteService.deleteFavoriteByItemId(itemId);
+    state = await favoriteService.getFavoriteItemsData();
+  }
+
+  bool isYourFavoriteItem(String itemId) {
+    return state.any((map) => map['id'] == itemId);
+  }
+}

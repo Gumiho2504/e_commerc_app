@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerc_app/user/controllers/cart_controller.dart';
 import 'package:e_commerc_app/user/models/item.dart';
 import 'package:e_commerc_app/user/screens/skeleton.dart';
+import 'package:e_commerc_app/user/services/favorite_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -19,7 +20,11 @@ class ProductDetailScreen extends HookConsumerWidget {
     final selectColor = useState(0);
     final selectSize = useState(0);
     final pageController = usePageController();
-    final isFavorite = useState(false);
+    final isFavorite = useState(
+      ref
+          .read(favoriteItemNotifierProvider.notifier)
+          .isYourFavoriteItem(item.id!),
+    );
     final isLoading = useState(false);
     final pages = [
       Container(
@@ -41,7 +46,7 @@ class ProductDetailScreen extends HookConsumerWidget {
         discountPrice = item.price * discountPercent / 100;
       }
       return null;
-    });
+    }, [isFavorite.value]);
 
     Color getColorFromName(String name) {
       switch (name.toLowerCase()) {
@@ -160,7 +165,20 @@ class ProductDetailScreen extends HookConsumerWidget {
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () {
+                                onTap: () async {
+                                  isFavorite.value
+                                      ? await ref
+                                          .read(
+                                            favoriteItemNotifierProvider
+                                                .notifier,
+                                          )
+                                          .removeFavoriteItem(item.id!)
+                                      : await ref
+                                          .read(
+                                            favoriteItemNotifierProvider
+                                                .notifier,
+                                          )
+                                          .addToFavorite(item.id!);
                                   isFavorite.value = !isFavorite.value;
                                 },
                                 child: Icon(

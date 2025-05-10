@@ -240,7 +240,7 @@ class _AddItemPageState extends ConsumerState<AddItemScreen> {
     );
   }
 
-  _categoriesDropDown(List<String> items, Item productItem) =>
+  _categoriesDropDown(List<String> items, ItemState productItem) =>
       DropdownButtonFormField(
         alignment: AlignmentDirectional.bottomStart,
         style: TextStyle(

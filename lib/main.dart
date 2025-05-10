@@ -1,9 +1,12 @@
 import 'package:e_commerc_app/admin/screens/add_item_screen.dart';
 import 'package:e_commerc_app/auth/services/auth_service.dart';
+import 'package:e_commerc_app/auth/services/notification_service.dart';
 import 'package:e_commerc_app/user/screens/cart_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:e_commerc_app/user/screens/home_screen.dart';
@@ -20,10 +23,23 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // FirebaseMessaging.onBackgroundMessage(_backgroundHandler);
+  // await FirebaseMessaging.instance.getInitialMessage();
+  // await FirebaseMessaging.instance.requestPermission(
+  //   alert: true,
+  //   badge: true,
+  //   sound: true,
+  // );
+  await FirebaseApi().initNotifications();
   await ScreenUtil.ensureScreenSize();
+  //await FirebaseMessaging.instance.getAPNSToken();
   final user = FirebaseAuth.instance.currentUser;
-
-  runApp(ProviderScope(child: MyApp(isLogin: user != null)));
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(ProviderScope(child: MyApp(isLogin: user != null)));
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -82,7 +98,10 @@ class _AuthHandlerState extends ConsumerState<AuthHandler> {
     final authStateChange = ref.watch(authStateChangesProvider);
     final authRepository = ref.watch(authRepositoryProvider);
     final role = useState<String?>(null);
-
+    FirebaseMessaging.instance.onTokenRefresh.listen((token) {
+      print('New FCM Token: $token');
+      // Send token to your server if needed
+    });
     if (authStateChange.value == null) {
       return LoginScreen();
     }

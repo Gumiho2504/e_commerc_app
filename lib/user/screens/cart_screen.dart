@@ -92,13 +92,17 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                           );
                                         }
                                         String image = data.data!;
-                                        return ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            5.h,
-                                          ),
-                                          child: CachedNetworkImage(
-                                            imageUrl: image,
-                                            fit: BoxFit.cover,
+                                        return Hero(
+                                          tag:
+                                              "favorite_to_cart_${item.productId}",
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              5.h,
+                                            ),
+                                            child: CachedNetworkImage(
+                                              imageUrl: image,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         );
                                       },

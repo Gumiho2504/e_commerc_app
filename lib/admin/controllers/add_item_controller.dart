@@ -7,13 +7,16 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-final addItemProvider = StateNotifierProvider<AddItemNotifier, Item>((ref) {
+final addItemProvider = StateNotifierProvider<AddItemNotifier, ItemState>((
+  ref,
+) {
   ref.keepAlive();
   return AddItemNotifier();
 });
 
-class AddItemNotifier extends StateNotifier<Item> {
-  AddItemNotifier() : super(Item(null, false, null, [], [], [], false, null)) {
+class AddItemNotifier extends StateNotifier<ItemState> {
+  AddItemNotifier()
+    : super(ItemState(null, false, null, [], [], [], false, null)) {
     fetctCategory();
   }
 

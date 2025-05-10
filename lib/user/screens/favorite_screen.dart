@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerc_app/components/components.dart';
+import 'package:e_commerc_app/user/controllers/cart_controller.dart';
 import 'package:e_commerc_app/user/models/item.dart';
+import 'package:e_commerc_app/user/screens/cart_screen.dart';
 import 'package:e_commerc_app/user/screens/product_detail_screen.dart';
 import 'package:e_commerc_app/user/screens/skeleton.dart';
 import 'package:e_commerc_app/user/services/favorite_service.dart';
@@ -16,17 +18,27 @@ class FavoriteScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userService = ref.watch(favoriteProvider);
-    final isDelete = useState(false);
-    useEffect(() {
-      // Future.microtask(() async {
-      //   final items = await userService.getFavoriteItemsData() as List;
-      //   items.forEach((element) => print(element));
+    final favoriteItems = ref.watch(favoriteItemNotifierProvider);
+    final favoriteItemsNotifier = ref.read(
+      favoriteItemNotifierProvider.notifier,
+    );
+    final deleteItem = useCallback((String itemId) {
+      favoriteItemsNotifier.removeFavoriteItem(itemId);
+    }, [favoriteItems]);
 
-      // });
+    final addToCart = useCallback((String itemId) async {
+      try {
+        await ref.read(cartProvider.notifier).addToCart(itemId);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CartScreen()),
+        );
+      } catch (e) {
+        throw e;
+      }
+    });
 
-      return null;
-    }, []);
+    //useEffect(() {}, []);
     useAutomaticKeepAlive();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,36 +46,27 @@ class FavoriteScreen extends HookConsumerWidget {
       children: [
         headerTitle('My Favorite'),
 
-        FutureBuilder(
-          future: userService.getFavoriteItemsData(),
-          builder: (context, data) {
-            if (data.data == null) {
-              return Expanded(
-                child: ListView.separated(
-                  separatorBuilder: (context, index) => SizedBox(height: 10.h),
-                  itemCount: 6,
-                  itemBuilder:
-                      (context, index) => Skeleton(height: 100, width: 100),
-                ),
-              );
-            }
-            final items = data.data as List;
-            if (items.isEmpty) {
-              return Text("No favorite items");
-            }
-
-            return Expanded(
+        favoriteItemsNotifier.isLoading
+            ? Expanded(
+              child: ListView.separated(
+                separatorBuilder: (context, index) => SizedBox(height: 10.h),
+                itemCount: 6,
+                itemBuilder:
+                    (context, index) => Skeleton(height: 100, width: 100),
+              ),
+            )
+            : Expanded(
               child: ListView.separated(
                 separatorBuilder: (context, index) => SizedBox(height: 10.h),
                 scrollDirection: Axis.vertical,
-                itemCount: items.length,
+                itemCount: favoriteItems.length,
                 itemBuilder: (context, index) {
                   return productCartTail(
-                    items[index],
-                    isDelete,
-                    userService,
+                    favoriteItems[index],
+                    deleteItem,
+                    addToCart,
                     () {
-                      final item = items[index] as Map<String, dynamic>;
+                      final item = favoriteItems[index];
 
                       Navigator.push(
                         context,
@@ -78,17 +81,15 @@ class FavoriteScreen extends HookConsumerWidget {
                   );
                 },
               ),
-            );
-          },
-        ),
+            ),
       ],
     );
   }
 
   productCartTail(
     Map<String, dynamic> item,
-    ValueNotifier<bool> isDelete,
-    FavoriteService userService,
+    Function(String) onDelete,
+    Function(String) addToCart,
     void Function() action,
   ) {
     double? afterDiscountPrice;
@@ -107,14 +108,6 @@ class FavoriteScreen extends HookConsumerWidget {
           border: Border(
             left: BorderSide(width: 5, color: ThemeData().primaryColor),
           ),
-          boxShadow: [
-            // BoxShadow(
-            //   spreadRadius: 1,
-            //   color: ThemeData().primaryColor.withAlpha(50),
-            //   blurRadius: 1,
-            //   offset: Offset(0, 1),
-            // ),
-          ],
         ),
         child: Row(
           children: [
@@ -125,16 +118,19 @@ class FavoriteScreen extends HookConsumerWidget {
                   width: 100.h,
                   height: 100.h,
 
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10.r),
-                    child: CachedNetworkImage(
-                      placeholder:
-                          (context, _) => Skeleton(
-                            height: double.infinity,
-                            width: double.infinity,
-                          ),
-                      imageUrl: item['image'],
-                      fit: BoxFit.cover,
+                  child: Hero(
+                    tag: "favorite_to_cart_${item['id']}",
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.r),
+                      child: CachedNetworkImage(
+                        placeholder:
+                            (context, _) => Skeleton(
+                              height: double.infinity,
+                              width: double.infinity,
+                            ),
+                        imageUrl: item['image'],
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),
@@ -198,19 +194,17 @@ class FavoriteScreen extends HookConsumerWidget {
                       spacing: 5.w,
                       children: [
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            addToCart(item['id']);
+                          },
                           child: PrimaryButton(label: "Add to cart"),
                         ),
                         InkWell(
-                          onTap: () async {
-                            isDelete.value = true;
-                            await userService.deleteFavoriteByItemId(
-                              item['id'],
-                            );
-                            isDelete.value = false;
+                          onTap: () {
+                            onDelete(item['id']);
                           },
                           child: PrimaryButton(
-                            label: isDelete.value ? "Removing .." : "Remove",
+                            label: "Remove",
                             color: Colors.red,
                           ),
                         ),

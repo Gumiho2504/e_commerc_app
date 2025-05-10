@@ -1,4 +1,4 @@
-class Item {
+class ItemState {
   final String? image;
   final bool isLoading;
   final String? seletedCategory;
@@ -8,9 +8,7 @@ class Item {
   final bool? isDiscount;
   final String? discountPercentage;
 
-  
-
-  Item(
+  ItemState(
     this.image,
     this.isLoading,
     this.seletedCategory,
@@ -21,7 +19,7 @@ class Item {
     this.discountPercentage,
   );
 
-  Item copyWith({
+  ItemState copyWith({
     String? image,
     bool? isLoading,
     String? seletedCategory,
@@ -31,13 +29,13 @@ class Item {
     bool? isDiscount,
     String? discountPercentage,
   }) {
-    return Item(
+    return ItemState(
       image ?? this.image,
       isLoading ?? this.isLoading,
       seletedCategory ?? this.seletedCategory,
       categories ?? this.categories,
-      color ?? this.colors,
-      size ?? this.sizes,
+      color ?? colors,
+      size ?? sizes,
       isDiscount ?? this.isDiscount,
       discountPercentage ?? this.discountPercentage,
     );
